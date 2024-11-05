@@ -57,7 +57,7 @@
             console.log("Pyodide and networkx are loaded.");
             
             // Load the causal analysis code
-            const pythonCodeUrl = "test_pyodide.py";
+            const pythonCodeUrl = "py/test_pyodide.py";
             console.log("Loading python code for causal analysis...");
             const response = await fetch(pythonCodeUrl);
             if (!response.ok) {
