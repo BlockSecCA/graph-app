@@ -1,0 +1,31 @@
+{
+    "nodes": [
+        { "id": "A", "label": "Use Cases", "type": "Entity", "group": "Main" },
+        { "id": "B", "label": "Configuration Policies", "type": "Process", "group": "Main" },
+        { "id": "C", "label": "Event Generation", "type": "Process", "group": "Main" },
+        { "id": "D", "label": "Infrastructure Usage", "type": "Process", "group": "Main" },
+        { "id": "E", "label": "Number of Users", "type": "Entity", "group": "Main" },
+        { "id": "F", "label": "Event Analysis", "type": "Process", "group": "Main" },
+        { "id": "G", "label": "True Positives", "type": "Outcome", "group": "Main" },
+        { "id": "H", "label": "False Positives", "type": "Outcome", "group": "Main" },
+        { "id": "I", "label": "False Negatives", "type": "Outcome", "group": "Main" },
+        { "id": "J", "label": "Baseline Complexity", "type": "Process", "group": "Main" }
+    ],
+    "edges": [
+        { "source": "A", "target": "B", "type": "+", "weight": 1.0 },
+        { "source": "B", "target": "C", "type": "+", "weight": 1.0 },
+        { "source": "C", "target": "D", "type": "+", "weight": 1.0 },
+        { "source": "E", "target": "C", "type": "+", "weight": 1.0 },
+        { "source": "C", "target": "F", "type": "+", "weight": 1.0 },
+        { "source": "F", "target": "B", "type": "+", "weight": 1.0 },
+        { "source": "F", "target": "G", "type": "+", "weight": 1.0 },
+        { "source": "F", "target": "H", "type": "+", "weight": 1.0 },
+        { "source": "F", "target": "I", "type": "-", "weight": -1.0 },
+        { "source": "I", "target": "B", "type": "-", "weight": -1.0 },
+        { "source": "D", "target": "J", "type": "+", "weight": 1.0 },
+        { "source": "G", "target": "J", "type": "-", "weight": -1.0 },
+        { "source": "H", "target": "J", "type": "+", "weight": 1.0 },
+        { "source": "J", "target": "B", "type": "-", "weight": -1.0 }
+    ]
+}
+
