@@ -4,10 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Application</title>
+
+    <!-- Link to Bootstrap CSS for styling the application -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- jQuery library for DOM manipulation and Bootstrap's JavaScript plugins -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+    <!-- Popper.js for managing popups and tooltips in Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+
+    <!-- Bootstrap's JavaScript library for interactive components -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Link to the favicon for the application -->
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
 
@@ -15,6 +26,7 @@
     <h1>Main Application</h1>
     <h2>Graph Visualization Application</h2>
     
+    <!-- Navigation Tabs for switching between the Graph Editor and Graph Analysis Tool -->
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="editor-tab" data-toggle="tab" href="#editor" role="tab">Graph Editor</a>
@@ -25,9 +37,11 @@
     </ul>
     
     <div class="tab-content" id="myTabContent">
+        <!-- Content for the Graph Editor tab -->
         <div class="tab-pane fade show active" id="editor" role="tabpanel">
             <iframe src="graph_editor.html" style="width: 100%; height: 600px; border: none;"></iframe>
         </div>
+        <!-- Content for the Graph Analysis Tool tab -->
         <div class="tab-pane fade" id="analysis" role="tabpanel">
             <iframe src="analysis_tool.html" style="width: 100%; height: 600px; border: none;"></iframe>
         </div>

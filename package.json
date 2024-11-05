@@ -1,11 +1,28 @@
 {
-  "name": "my-electron-app",
+  "name": "causal-graph-tool",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-packager . MyApp --platform=win32 --arch=x64 --out=dist/ --overwrite",
+    "build": "electron-builder"
   },
   "devDependencies": {
-    "electron": "^<version>"
+    "electron": "^25.0.0",
+    "electron-builder": "^25.1.8",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.example.myapp",
+    "productName": "Causal-Graph-Tool",
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }
