@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Visualization with Add, Delete, Save, Load</title>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.18.1/full/pyodide.js"></script>
+
+    <style>
+        #graph-container {
+            width: 80vw;
+            height: 60vh;
+            border: 1px solid lightgray;
+            margin-top: 20px;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Graph Visualization with Add, Delete, Save, Load</h1>
+    
+    <!-- Controls for Adding Nodes -->
+    <div class="controls">
+        <input type="text" id="node-id" placeholder="Node ID" />
+        <input type="text" id="node-label" placeholder="Node Label" />
+        <button onclick="addNode()">Add Node</button>
+        <button onclick="deleteNode()">Delete Node</button>
+    </div>
+
+    <!-- Controls for Adding Edges -->
+    <div class="controls">
+        <input type="text" id="edge-source" placeholder="Source ID" />
+        <input type="text" id="edge-target" placeholder="Target ID" />
+        <input type="text" id="edge-type" placeholder="Edge Type (+ or -)" />
+        <input type="number" id="edge-weight" placeholder="Weight" />
+        <button onclick="addEdge()">Add Edge</button>
+        <button onclick="deleteEdge()">Delete Edge</button>
+    </div>
+
+    <!-- Save and Load Controls -->
+    <div class="controls">
+        <input type="text" id="save-filename" placeholder="Filename (e.g., graph.json)" />
+        <button onclick="saveGraph()">Save Graph</button>
+        <input type="file" id="file-input" accept=".json" onchange="loadGraph(event)" />
+    </div>
+
+    <!-- Graph Container -->
+    <div id="graph-container"></div>
+
+    <script>
+        
+        // Initialize global data
+        const currentGraphData = { nodes: [], edges: [] };
+        let network;
+
+        // Render the graph based on currentGraphData
+        function renderGraph() {
+            const container = document.getElementById("graph-container");
+
+            if (network) {
+                network.destroy();
+                network = null;
+            }
+
+            const nodes = new vis.DataSet(currentGraphData.nodes);
+            const edges = new vis.DataSet(
+                currentGraphData.edges.map(edge => ({
+                    from: edge.source,
+                    to: edge.target,
+                    label: edge.type,
+                    width: edge.weight * 2,
+                    color: edge.type === "+" ? "#FF0000" : "#00FF00",
+                    arrows: { to: { enabled: true, scaleFactor: 1.5 } } // Arrow styling applied here
+                }))
+            );
+
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    size: 10,
+                    font: { color: '#000000', size: 16 }
+                },
+                edges: {
+                    arrows: {
+                        to: { enabled: true, scaleFactor: 1.5 }
+                    },
+                    color: '#848484',
+                    smooth: true,
+                    font: {
+                        color: '#343434',
+                        size: 14,
+                        align: 'middle'
+                    }
+                },
+                physics: {
+                    enabled: true,
+                    stabilization: { iterations: 1000 }
+                }
+            };
+
+            network = new vis.Network(container, { nodes, edges }, options);
+            console.log("Network re-rendered with updated data.");
+        }
+
+        // Add a node to currentGraphData and re-render
+        function addNode() {
+            const id = document.getElementById("node-id").value;
+            let label = document.getElementById("node-label").value;
+            if (!id) {
+                alert("Please enter a valid node ID.");
+                return;
+            }
+
+            if (!label) label = id; // Default label to node ID if empty
+
+            currentGraphData.nodes.push({ id, label });
+            renderGraph();
+            clearInputs("node-id", "node-label");
+        }
+
+        // Add an edge to currentGraphData and re-render
+        function addEdge() {
+            const source = document.getElementById("edge-source").value;
+            const target = document.getElementById("edge-target").value;
+            let type = document.getElementById("edge-type").value;
+            let weight = parseFloat(document.getElementById("edge-weight").value);
+
+            if (!source || !target) {
+                alert("Please enter valid source and target IDs for the edge.");
+                return;
+            }
+
+            if (isNaN(weight)) weight = 1;  // Default weight to 1 if empty
+             // if (!type) type = `${source} to ${target}`; // Default label to "source to target" if empty
+             if (!type) type = ``; // Default label to "" if empty 
+
+            currentGraphData.edges.push({ source, target, type, weight });
+            renderGraph();
+            clearInputs("edge-source", "edge-target", "edge-type", "edge-weight");
+        }
+
+        // Delete a node and all its associated edges
+        function deleteNode() {
+            const nodeId = document.getElementById("node-id").value;
+            if (!nodeId) {
+                alert("Please enter a valid node ID to delete.");
+                return;
+            }
+
+            // Remove the node from nodes list
+            currentGraphData.nodes = currentGraphData.nodes.filter(node => node.id !== nodeId);
+
+            // Remove all edges connected to this node
+            currentGraphData.edges = currentGraphData.edges.filter(edge => edge.source !== nodeId && edge.target !== nodeId);
+
+            renderGraph();
+            clearInputs("node-id", "node-label");
+        }
+
+        // Delete a specific edge
+        function deleteEdge() {
+            const source = document.getElementById("edge-source").value;
+            const target = document.getElementById("edge-target").value;
+
+            if (!source || !target) {
+                alert("Please enter valid source and target IDs to delete the edge.");
+                return;
+            }
+
+            // Remove the specified edge from edges list
+            currentGraphData.edges = currentGraphData.edges.filter(edge => edge.source !== source || edge.target !== target);
+
+            renderGraph();
+            clearInputs("edge-source", "edge-target", "edge-type", "edge-weight");
+        }
+
+        // Clear input fields
+        function clearInputs(...inputIds) {
+            inputIds.forEach(id => document.getElementById(id).value = "");
+        }
+
+        // Save the graph data to a JSON file
+        function saveGraph() {
+            const filename = document.getElementById("save-filename").value || "graph.json";
+            const dataStr = JSON.stringify(currentGraphData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const downloadLink = document.createElement("a");
+            downloadLink.href = url;
+            downloadLink.download = filename;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+
+            console.log(`Graph saved as ${filename}`);
+        }
+
+        // Load the graph data from a selected JSON file
+        async function loadGraph(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileContent = await file.text();
+            try {
+                const data = JSON.parse(fileContent);
+
+                // Update currentGraphData with loaded data
+                currentGraphData.nodes = data.nodes || [];
+                currentGraphData.edges = data.edges || [];
+
+                // Render the loaded graph
+                renderGraph();
+                console.log("Graph loaded from file:", file.name);
+            } catch (error) {
+                console.error("Error loading JSON file:", error);
+                alert("Failed to load JSON file. Ensure it has a valid structure.");
+            }
+        }
+
+        // Initial render to start with an empty graph
+        renderGraph();
+    </script>
+</body>
+</html>
