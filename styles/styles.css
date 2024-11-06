@@ -54,13 +54,6 @@ main {
     padding: 10px;
 }
 
-.canvas {
-    border: 1px solid #ccc;
-    height: 400px;
-    margin-bottom: 20px;
-    background-color: #f9f9f9;
-}
-
 /* Properties and Results Panel Styles */
 #propertiesPanel, #resultsDisplay {
     border: 1px solid #ccc;

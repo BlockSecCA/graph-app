@@ -23,8 +23,6 @@
 <body>
 
 <div class="container">
-    <h1>Main Application</h1>
-    <h2>Graph Visualization Application</h2>
     
     <!-- Navigation Tabs for switching between the Graph Editor and Graph Analysis Tool -->
     <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -39,16 +37,15 @@
     <div class="tab-content" id="myTabContent">
         <!-- Content for the Graph Editor tab -->
         <div class="tab-pane fade show active" id="editor" role="tabpanel">
-            <iframe src="graph_editor.html" style="width: 100%; height: 600px; border: none;"></iframe>
+            <iframe src="graph_editor_new.html" style="width: 100%; height: calc(100vh - 150px); border: none;"></iframe>
         </div>
         <!-- Content for the Graph Analysis Tool tab -->
         <div class="tab-pane fade" id="analysis" role="tabpanel">
-            <iframe src="analysis_tool.html" style="width: 100%; height: 600px; border: none;"></iframe>
+            <iframe src="analysis_tool.html" style="width: 100%; height: calc(100vh - 150px); border: none;"></iframe>
         </div>
     </div>
     
     <footer>
-        <p>Status: Ready</p>
         <p>Version: 1.0</p>
     </footer>
 </div>
