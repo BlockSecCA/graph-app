@@ -14,6 +14,10 @@ Launching the app with `npm start` opens the Electron window with tabs for build
 1. Install dependencies with `npm install`.
 2. Start the application using `npm start`.
 
+## Development Environment
+This project was developed using **Node.js v20.19.2** together with **Electron v25.0.0**.
+Using a version manager such as [`nvm`](https://github.com/nvm-sh/nvm) makes it easy to match these versions.
+
 ## Testing
 Run `npm test` to execute the Jest test suite found in the `__tests__` directory.
 
