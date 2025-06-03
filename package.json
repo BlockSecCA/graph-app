@@ -5,12 +5,14 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-packager . MyApp --platform=win32 --arch=x64 --out=dist/ --overwrite",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "test": "jest"
   },
   "devDependencies": {
     "electron": "^25.0.0",
     "electron-builder": "^25.1.8",
-    "electron-packager": "^17.1.2"
+    "electron-packager": "^17.1.2",
+    "jest": "^29.7.0"
   },
   "build": {
     "appId": "com.example.myapp",
