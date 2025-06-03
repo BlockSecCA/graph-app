@@ -128,11 +128,10 @@
                 network = new vis.Network(container, { nodes, edges }, options);
                 console.log("Network re-rendered with updated data.");
                 
-                // Reinforce necessary container styles first, to ensure the graph container stays as expected
-                container.style.position = "relative";
-                container.style.width = "80vw";
-                container.style.height = "60vh";
-                console.log("Reinforcing container styles");
+                // Ensure container maintains relative positioning
+                if (!container.style.position) {
+                    container.style.position = "relative";
+                }
 
             }
             // End of renderGraph()
@@ -274,8 +273,6 @@
                     graphContainer.style.height = newHeight + 'px';
                     if (network) {
                         network.redraw(); // Redraw the network to adjust
-                        container.style.width = container.style.width || "80vw";
-                        container.style.height = container.style.height || "60vh";
                     }
                 }
             }
