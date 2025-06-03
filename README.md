@@ -14,5 +14,8 @@ Launching the app with `npm start` opens the Electron window with tabs for build
 1. Install dependencies with `npm install`.
 2. Start the application using `npm start`.
 
+## Testing
+Run `npm test` to execute the Jest test suite found in the `__tests__` directory.
+
 ## Packaging
 Additional scripts for building and packaging the app are defined in `package.json` (`npm run build`, `npm run pack`).
