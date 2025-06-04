@@ -39,9 +39,6 @@
         const currentGraphData = { nodes: [], edges: [] };
         let network;
 
-        // Load validator for graph structure
-        const { validateGraph } = require('./lib/graphValidator');
-
         // Python code to test Pyodide functionality
         const output = document.getElementById("output");
 
@@ -188,16 +185,6 @@
             const fileContent = await file.text();
             try {
                 const data = JSON.parse(fileContent);
-
-                const result = validateGraph(data);
-                if (result.errors.length > 0) {
-                    alert('Graph validation errors:\n' + result.errors.join('\n'));
-                    console.error('Graph validation failed:', result.errors);
-                    return;
-                }
-                if (result.warnings.length > 0) {
-                    alert('Graph validation warnings:\n' + result.warnings.join('\n'));
-                }
 
                 rawGraphData = data;
                 currentGraphData.nodes = data.nodes || [];
