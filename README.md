@@ -24,3 +24,6 @@ Run `npm test` to execute the Jest test suite found in the `__tests__` directory
 Additional scripts for building and packaging the app are defined in `package.json`:
 - `npm run build`
 - `npm run pack`
+
+## Agents
+For AI agents and automation guidance, see [AGENTS.md](./AGENTS.md)
