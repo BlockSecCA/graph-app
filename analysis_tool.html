@@ -139,6 +139,17 @@
                 alert("Result: " + alertMsg);
                 addToOutput(jsResult);
                 console.log("Python code output:", jsResult); // Log the result to the console
+                let alertMsg = result;
+                if (typeof result === 'object') {
+                    try {
+                        alertMsg = JSON.stringify(result, null, 2);
+                    } catch (e) {
+                        alertMsg = String(result);
+                    }
+                }
+                alert("Result: " + alertMsg);
+                addToOutput(result);
+                console.log("Python code output:", result); // Log the result to the console
             } catch (err) {
                 console.error("Error during debugging:", err);
                 alert("Failed to perform debugging.");
