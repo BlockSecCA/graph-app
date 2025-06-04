@@ -5,7 +5,7 @@ This Electron-based application provides a simple interface for editing graphs a
 - **Main Window**: `main.js` creates an 800x600 window and loads `index.html`. A menu option **"Open README"** displays this file in a new window.
 - **Index Page**: `index.html` offers two Bootstrap tabs: a Graph Editor and a Graph Analysis Tool, each embedded in an `<iframe>`.
 - **Graph Editor**: `graph_editor_new.html` uses `vis-network` to visualize graphs. Users can add or delete nodes and edges, save graphs as JSON, and reload saved graphs. A draggable handle allows resizing the network view.
-- **Graph Analysis**: `analysis_tool.html` loads Pyodide to run the Python script `py/test_pyodide.py`. The script converts the graph to NetworkX, computes influence scores, and finds positive or negative paths between the first and last nodes. Results appear as indented JSON in a text area and via alerts for readability. - **Graph Analysis**: `analysis_tool.html` loads Pyodide to run the Python script `py/test_pyodide.py`. The script converts the graph to NetworkX, computes influence scores, and finds positive or negative paths between the first and last nodes. Results appear formatted as JSON in a text area and via alerts.
+ - **Graph Analysis**: `analysis_tool.html` loads Pyodide to run the Python script `py/test_pyodide.py`. The script converts the graph to NetworkX, computes influence scores, and finds positive or negative paths between the first and last nodes. Results appear formatted as JSON in a text area and via alerts.
 
 Launching the app with `npm start` opens the Electron window with tabs for building and analyzing graphs.
 
