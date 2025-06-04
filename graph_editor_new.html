@@ -74,6 +74,9 @@
         // Wait for DOM content to be ready via wrapparound function ///
         //document.addEventListener("DOMContentLoaded", function() {
 
+            // Load graph validator from Node environment
+            const { validateGraph } = require('./lib/graphValidator');
+
             // Initialize global data
             const currentGraphData = { nodes: [], edges: [] };
             let network;
@@ -239,6 +242,16 @@
                 const fileContent = await file.text();
                 try {
                     const data = JSON.parse(fileContent);
+
+                    const result = validateGraph(data);
+                    if (result.errors.length > 0) {
+                        alert('Graph validation errors:\n' + result.errors.join('\n'));
+                        console.error('Graph validation failed:', result.errors);
+                        return;
+                    }
+                    if (result.warnings.length > 0) {
+                        alert('Graph validation warnings:\n' + result.warnings.join('\n'));
+                    }
 
                     // Update currentGraphData with loaded data
                     currentGraphData.nodes = data.nodes || [];
