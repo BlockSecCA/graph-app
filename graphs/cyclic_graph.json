@@ -1,0 +1,13 @@
+{
+    "nodes": [
+        {"id": "1", "label": "One"},
+        {"id": "2", "label": "Two"},
+        {"id": "3", "label": "Three"}
+    ],
+    "edges": [
+        {"source": "1", "target": "2", "type": "+", "weight": 1},
+        {"source": "2", "target": "3", "type": "+", "weight": 1},
+        {"source": "3", "target": "1", "type": "+", "weight": 1},
+        {"source": "2", "target": "2", "type": "-", "weight": 1}
+    ]
+}
