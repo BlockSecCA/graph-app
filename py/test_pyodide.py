@@ -1,4 +1,4 @@
-import js # Import the js module to access JavaScript variables
+import js  # Import the js module to access JavaScript variables
 import networkx as nx
 
 # Convert JavaScript data to Python-native format
@@ -23,14 +23,26 @@ for edge in edges:
         weight = -weight  # Indicate negative influence
     G.add_edge(edge['source'], edge['target'], weight=weight)
 
+# Map node IDs to labels for readability
+id_to_label = {n['id']: n.get('label', n['id']) for n in nodes}
+
 # Calculate influence scores (sum of incoming edge weights for each node)
-influence_scores = {node: sum(data['weight'] for _, node, data in G.in_edges(node, data=True)) for node in G.nodes}
+influence_scores = {
+    id_to_label[node]: sum(data['weight'] for _, node, data in G.in_edges(node, data=True))
+    for node in G.nodes
+}
 
 # Find paths that only use positive or only negative edges
-positive_paths = [path for path in nx.all_simple_paths(G, source=nodes[0]['id'], target=nodes[-1]['id'])
-                  if all(G[u][v]['weight'] > 0 for u, v in zip(path, path[1:]))]
-negative_paths = [path for path in nx.all_simple_paths(G, source=nodes[0]['id'], target=nodes[-1]['id'])
-                  if all(G[u][v]['weight'] < 0 for u, v in zip(path, path[1:]))]
+positive_paths = [
+    [id_to_label[n] for n in path]
+    for path in nx.all_simple_paths(G, source=nodes[0]['id'], target=nodes[-1]['id'])
+    if all(G[u][v]['weight'] > 0 for u, v in zip(path, path[1:]))
+]
+negative_paths = [
+    [id_to_label[n] for n in path]
+    for path in nx.all_simple_paths(G, source=nodes[0]['id'], target=nodes[-1]['id'])
+    if all(G[u][v]['weight'] < 0 for u, v in zip(path, path[1:]))
+]
 
 # Prepare result
 result = {
