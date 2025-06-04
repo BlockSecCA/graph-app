@@ -43,7 +43,15 @@
         const output = document.getElementById("output");
 
         function addToOutput(s) {
-            output.value += ">>> " + s + "\n";
+            let formatted = s;
+            if (typeof s === 'object') {
+                try {
+                    formatted = JSON.stringify(s, null, 2);
+                } catch (e) {
+                    formatted = String(s);
+                }
+            }
+            output.value += ">>> " + formatted + "\n";
         }
 
         let causalAnalysisCode = "";  // Declare causalAnalysisCode globally
@@ -106,12 +114,31 @@
                 // Run the Python code
                 console.log("Running Python code...");
                 console.log("Loaded Python code:", causalAnalysisCode);
-                const result = await pyodide.runPythonAsync(causalAnalysisCode);
+                let result = await pyodide.runPythonAsync(causalAnalysisCode);
 
                 console.log("Python code output:", result);
-                alert("Result: " + result); // This will show the output in a popup
-                addToOutput(result);
-                console.log("Python code output:", result); // Log the result to the console
+
+                // Convert PyProxy results to plain JavaScript objects for proper formatting
+                const jsResult = (result && typeof result.toJs === 'function')
+                    ? result.toJs({ dict_converter: Object.fromEntries })
+                    : result;
+
+                // Free the PyProxy if necessary
+                if (result && typeof result.destroy === 'function') {
+                    result.destroy();
+                }
+
+                let alertMsg = jsResult;
+                if (typeof jsResult === 'object') {
+                    try {
+                        alertMsg = JSON.stringify(jsResult, null, 2);
+                    } catch (e) {
+                        alertMsg = String(jsResult);
+                    }
+                }
+                alert("Result: " + alertMsg);
+                addToOutput(jsResult);
+                console.log("Python code output:", jsResult); // Log the result to the console
             } catch (err) {
                 console.error("Error during debugging:", err);
                 alert("Failed to perform debugging.");
