@@ -22,6 +22,24 @@
 * Graph must contain at least **2 nodes** and **1 edge** to be meaningful for analysis.
 * Edge weights must be valid numbers.
 
+### Example of a broken graph
+{
+  "nodes": [
+    { "id": "1", "label": "Node 1" },
+    { "id": "1", "label": "Duplicate ID" },       // Duplicate ID
+    { "label": "Missing ID" },                    // Missing 'id'
+    { "id": "4" }                                 // No label (ok if optional, bad if required)
+  ],
+  "edges": [
+    { "source": "1", "target": "2" },             // Target "2" doesn’t exist
+    { "source": "1" },                            // Missing 'target'
+    { "target": "4" },                            // Missing 'source'
+    { "source": "999", "target": "1" },           // Source does not exist
+    { "source": "1", "target": "4", "weight": "a" }, // Non-numeric weight
+    { "source": "1", "target": "1" }              // Self-loop (maybe allowed, but worth warning)
+  ]
+}
+
 ---
 
 ## Semantic Guidelines for Causal Analysis (Optional, but recommended)
