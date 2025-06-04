@@ -81,7 +81,7 @@
             // Render the graph based on currentGraphData
 
             function renderGraph() {
-                const container = document.getElementById("graph-container");
+                const container = document.getElementById("network");
 
                 if (network) {
                     network.destroy();
@@ -128,9 +128,10 @@
                 network = new vis.Network(container, { nodes, edges }, options);
                 console.log("Network re-rendered with updated data.");
                 
-                // Ensure container maintains relative positioning
-                if (!container.style.position) {
-                    container.style.position = "relative";
+                // Ensure outer graph container maintains relative positioning
+                const graphContainer = document.getElementById("graph-container");
+                if (graphContainer && !graphContainer.style.position) {
+                    graphContainer.style.position = "relative";
                 }
 
             }
