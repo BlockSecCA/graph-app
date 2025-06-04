@@ -26,7 +26,7 @@
         <input type="file" id="file-input" accept=".json" onchange="loadGraph(event)" />
     </div>
     <div>Output:</div>
-    <textarea id="output" style="width: 100%;" rows="6" disabled></textarea>
+    <textarea id="output" style="width: 100%; white-space: pre; font-family: monospace;" rows="6" disabled></textarea>
 
     <!-- Graph Container -->
     <div id="graph-container"></div>    
@@ -114,9 +114,31 @@
                 // Run the Python code
                 console.log("Running Python code...");
                 console.log("Loaded Python code:", causalAnalysisCode);
-                const result = await pyodide.runPythonAsync(causalAnalysisCode);
+                let result = await pyodide.runPythonAsync(causalAnalysisCode);
 
                 console.log("Python code output:", result);
+
+                // Convert PyProxy results to plain JavaScript objects for proper formatting
+                const jsResult = (result && typeof result.toJs === 'function')
+                    ? result.toJs({ dict_converter: Object.fromEntries })
+                    : result;
+
+                // Free the PyProxy if necessary
+                if (result && typeof result.destroy === 'function') {
+                    result.destroy();
+                }
+
+                let alertMsg = jsResult;
+                if (typeof jsResult === 'object') {
+                    try {
+                        alertMsg = JSON.stringify(jsResult, null, 2);
+                    } catch (e) {
+                        alertMsg = String(jsResult);
+                    }
+                }
+                alert("Result: " + alertMsg);
+                addToOutput(jsResult);
+                console.log("Python code output:", jsResult); // Log the result to the console
                 let alertMsg = result;
                 if (typeof result === 'object') {
                     try {
