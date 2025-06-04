@@ -66,8 +66,8 @@
     
     <div id="graph-container">
         <div id="network" class="vis-network"></div>
+        <div class="resizer"></div> <!-- Resizer element for resizing the graph container -->
     </div>
-    <div class="resizer"></div> <!-- Resizer element for resizing the graph container -->
     
     
     <script>
@@ -270,7 +270,8 @@
                     graphContainer.style.width = newWidth + 'px';
                     graphContainer.style.height = newHeight + 'px';
                     if (network) {
-                        network.redraw(); // Redraw the network to adjust
+                        network.setSize(newWidth + 'px', newHeight + 'px');
+                        network.fit(); // adjust view to new container
                     }
                 }
             }
