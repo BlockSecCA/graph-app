@@ -23,6 +23,7 @@
 * Edge weights must be valid numbers.
 
 ### Example of a broken graph
+```json
 {
   "nodes": [
     { "id": "1", "label": "Node 1" },
@@ -39,6 +40,7 @@
     { "source": "1", "target": "1" }              // Self-loop (maybe allowed, but worth warning)
   ]
 }
+```
 
 ---
 
