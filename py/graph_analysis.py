@@ -40,14 +40,26 @@ def analyze_graph(nodes, edges):
 
     positive_paths = []
     negative_paths = []
-    if nodes:
+    if len(nodes) >= 2:
         source = nodes[0]['id']
         target = nodes[-1]['id']
-        for path in nx.all_simple_paths(G, source=source, target=target):
-            if all(G[u][v]['weight'] > 0 for u, v in zip(path, path[1:])):
-                positive_paths.append([id_to_label[n] for n in path])
-            if all(G[u][v]['weight'] < 0 for u, v in zip(path, path[1:])):
-                negative_paths.append([id_to_label[n] for n in path])
+        try:
+            if nx.has_path(G, source, target):
+                all_weights = [d['weight'] for _, _, d in G.edges(data=True)]
+                if not all_weights or max(all_weights) <= 0:
+                    # All weights are non-positive; return empty paths
+                    positive_paths = []
+                    negative_paths = []
+                else:
+                    cutoff = len(G.nodes())
+                    for path in nx.all_simple_paths(G, source=source, target=target, cutoff=cutoff):
+                        if all(G[u][v]['weight'] > 0 for u, v in zip(path, path[1:])):
+                            positive_paths.append([id_to_label[n] for n in path])
+                        if all(G[u][v]['weight'] < 0 for u, v in zip(path, path[1:])):
+                            negative_paths.append([id_to_label[n] for n in path])
+        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            positive_paths = []
+            negative_paths = []
 
     return {
         'influence_scores': influence_scores,
