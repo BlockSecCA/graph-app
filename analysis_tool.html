@@ -108,10 +108,37 @@
                 console.log("Loaded Python code:", causalAnalysisCode);
                 const result = await pyodide.runPythonAsync(causalAnalysisCode);
 
-                console.log("Python code output:", result);
-                alert("Result: " + result); // This will show the output in a popup
-                addToOutput(result);
-                console.log("Python code output:", result); // Log the result to the console
+                // Convert Pyodide proxy to plain JS object if needed
+                const jsResult = result.toJs ? result.toJs() : result;
+                console.log("Python code output:", jsResult);
+
+                // Format the result for human readability
+                const lines = [];
+                if (jsResult.influence_scores) {
+                    lines.push("Influence Scores:");
+                    for (const [label, score] of Object.entries(jsResult.influence_scores)) {
+                        lines.push(`${label}: ${score}`);
+                    }
+                }
+
+                if (jsResult.positive_paths) {
+                    lines.push("", "Positive Paths:");
+                    for (const path of jsResult.positive_paths) {
+                        lines.push(path.join(" \u2192 "));
+                    }
+                }
+
+                if (jsResult.negative_paths) {
+                    lines.push("", "Negative Paths:");
+                    for (const path of jsResult.negative_paths) {
+                        lines.push(path.join(" \u2192 "));
+                    }
+                }
+
+                const formatted = lines.join("\n");
+
+                alert(formatted); // Display nicely formatted output
+                addToOutput(formatted);
             } catch (err) {
                 console.error("Error during debugging:", err);
                 alert("Failed to perform debugging.");
