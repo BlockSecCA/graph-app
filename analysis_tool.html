@@ -43,7 +43,15 @@
         const output = document.getElementById("output");
 
         function addToOutput(s) {
-            output.value += ">>> " + s + "\n";
+            let formatted = s;
+            if (typeof s === 'object') {
+                try {
+                    formatted = JSON.stringify(s, null, 2);
+                } catch (e) {
+                    formatted = String(s);
+                }
+            }
+            output.value += ">>> " + formatted + "\n";
         }
 
         let causalAnalysisCode = "";  // Declare causalAnalysisCode globally
@@ -109,7 +117,15 @@
                 const result = await pyodide.runPythonAsync(causalAnalysisCode);
 
                 console.log("Python code output:", result);
-                alert("Result: " + result); // This will show the output in a popup
+                let alertMsg = result;
+                if (typeof result === 'object') {
+                    try {
+                        alertMsg = JSON.stringify(result, null, 2);
+                    } catch (e) {
+                        alertMsg = String(result);
+                    }
+                }
+                alert("Result: " + alertMsg);
                 addToOutput(result);
                 console.log("Python code output:", result); // Log the result to the console
             } catch (err) {
