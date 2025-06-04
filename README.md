@@ -20,6 +20,12 @@ Using a version manager such as [`nvm`](https://github.com/nvm-sh/nvm) makes it 
 ## Testing
 Run `npm test` to execute the Jest test suite found in the `__tests__` directory.
 
+## Graph Validation
+Graphs loaded through the editor or analysis tool are validated against
+[`graphs/GRAPH_SPEC.md`](graphs/GRAPH_SPEC.md). Structural errors such as missing
+IDs or invalid edges cause an alert and prevent rendering, while non-fatal issues
+like missing weights are shown as warnings.
+
 ## Packaging
 Additional scripts for building and packaging the app are defined in `package.json`:
 - `npm run build`
