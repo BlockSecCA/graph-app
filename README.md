@@ -9,6 +9,26 @@ This Electron-based application provides a simple interface for editing graphs a
 
 Launching the app with `npm start` opens the Electron window with tabs for building and analyzing graphs.
 
+## Architecture
+
+The project follows a simple Electron structure with a main process and two renderer contexts.
+
+- **Main Process**: `main.js` creates the Electron window and sets up the menu.
+- **Renderer**: `index.html` uses Bootstrap tabs to embed two iframes for the editor and the analysis tool.
+- **Graph Editor** (`graph_editor_new.html`): handles visual editing and uses `lib/graphUtils.js` for graph operations.
+- **Analysis Tool** (`analysis_tool.html`): runs Python code via Pyodide (e.g., `py/test_pyodide.py`) to compute influence scores and paths.
+
+```mermaid
+graph TD
+    main[main.js] --> index[index.html]
+    index --> editor[graph_editor_new.html]
+    index --> analysis[analysis_tool.html]
+    editor --> utils[lib/graphUtils.js]
+    analysis --> utils
+    analysis --> pyodide[Pyodide]
+    pyodide --> py[py/*.py]
+```
+
 ## Getting Started
 1. Install dependencies with `npm install`.
 2. Start the application using `npm start`.
