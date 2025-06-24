@@ -533,10 +533,27 @@
                 interaction: {
                     hover: true,
                     selectConnectedEdges: false
-                }
+                },
+                // Force vis-network to use full container size
+                autoResize: true,
+                width: '100%',
+                height: '100%'
             };
 
             const editorNetwork = new vis.Network(container, { nodes: new vis.DataSet(), edges: new vis.DataSet() }, options);
+            
+            // Force resize to container dimensions
+            function resizeNetwork() {
+                const rect = container.getBoundingClientRect();
+                editorNetwork.setSize(rect.width + 'px', rect.height + 'px');
+                editorNetwork.fit();
+            }
+            
+            // Initial resize
+            setTimeout(resizeNetwork, 100);
+            
+            // Resize on window resize
+            window.addEventListener('resize', resizeNetwork);
             
             // Register with shared state
             window.graphApp.registerNetwork('editor', editorNetwork);
@@ -626,18 +643,21 @@
                     editorPane.style.flex = `0 0 ${leftPercent}%`;
                     analysisPane.style.flex = `0 0 ${rightPercent}%`;
                     
-                    // Trigger network resize
+                    // Trigger network resize with proper dimensions
                     setTimeout(() => {
                         const editorNetwork = window.graphApp.networks.editor;
                         const analysisNetwork = window.graphApp.networks.analysis;
                         
                         if (editorNetwork) {
+                            const editorContainer = document.getElementById('editor-network');
+                            const rect = editorContainer.getBoundingClientRect();
+                            editorNetwork.setSize(rect.width + 'px', rect.height + 'px');
                             editorNetwork.fit();
                         }
                         if (analysisNetwork) {
                             analysisNetwork.fit();
                         }
-                    }, 10);
+                    }, 50);
                 }
             }
             
