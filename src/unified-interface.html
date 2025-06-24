@@ -474,22 +474,33 @@
             
             // Set up IPC listeners for menu commands
             if (window.require) {
-                const { ipcRenderer } = window.require('electron');
-                
-                ipcRenderer.on('menu-new-graph', () => {
-                    if (confirm('Create a new graph? This will clear the current graph.')) {
-                        window.graphApp.updateGraph({ nodes: [], edges: [] });
-                        showStatus('New graph created', 'info');
-                    }
-                });
-                
-                ipcRenderer.on('menu-load-graph', () => {
-                    document.getElementById('file-input').click();
-                });
-                
-                ipcRenderer.on('menu-save-graph', () => {
-                    saveGraphFile();
-                });
+                try {
+                    const { ipcRenderer } = window.require('electron');
+                    console.log('IPC Renderer available, setting up menu listeners...');
+                    
+                    ipcRenderer.on('menu-new-graph', () => {
+                        console.log('Menu: New Graph clicked');
+                        if (confirm('Create a new graph? This will clear the current graph.')) {
+                            window.graphApp.updateGraph({ nodes: [], edges: [] });
+                            showStatus('New graph created', 'info');
+                        }
+                    });
+                    
+                    ipcRenderer.on('menu-load-graph', () => {
+                        console.log('Menu: Load Graph clicked');
+                        document.getElementById('file-input').click();
+                    });
+                    
+                    ipcRenderer.on('menu-save-graph', () => {
+                        console.log('Menu: Save Graph clicked');
+                        saveGraphFile();
+                    });
+                    
+                } catch (error) {
+                    console.error('Failed to set up IPC listeners:', error);
+                }
+            } else {
+                console.warn('window.require not available, menu shortcuts will not work');
             }
         });
 

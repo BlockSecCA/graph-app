@@ -1,5 +1,5 @@
 // Import necessary modules from Electron
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -16,6 +16,7 @@ function createWindow() {
         height: 600, // Set the height of the window
         webPreferences: {
             nodeIntegration: true, // Enable Node.js integration in the renderer process
+            contextIsolation: false, // Disable context isolation to allow access to require
         },
         icon: __dirname + `/assets/icon.ico`
     });
@@ -60,9 +61,13 @@ const menuTemplate = [
                 label: 'New Graph', 
                 accelerator: 'CmdOrCtrl+N',
                 click: () => {
+                    console.log('Menu: New Graph clicked (main process)');
                     const win = BrowserWindow.getFocusedWindow();
                     if (win) {
+                        console.log('Sending menu-new-graph to renderer');
                         win.webContents.send('menu-new-graph');
+                    } else {
+                        console.log('No focused window found');
                     }
                 }
             },
