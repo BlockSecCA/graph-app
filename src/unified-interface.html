@@ -488,7 +488,13 @@
                     
                     ipcRenderer.on('menu-load-graph', () => {
                         console.log('Menu: Load Graph clicked');
-                        document.getElementById('file-input').click();
+                        // Use setTimeout to ensure user gesture context
+                        setTimeout(() => {
+                            const fileInput = document.getElementById('file-input');
+                            if (fileInput) {
+                                fileInput.click();
+                            }
+                        }, 0);
                     });
                     
                     ipcRenderer.on('menu-save-graph', () => {
@@ -845,11 +851,26 @@
                 window.pyodideInstance = await loadPyodide();
                 await window.pyodideInstance.loadPackage('networkx');
                 
-                // Load the Python analysis code
-                const response = await fetch('../py/test_pyodide.py');
-                if (!response.ok) {
-                    throw new Error(`Failed to load Python analysis: ${response.status}`);
+                // Load the Python analysis code (try multiple paths)
+                let response;
+                const possiblePaths = ['../py/test_pyodide.py', './py/test_pyodide.py', 'py/test_pyodide.py'];
+                
+                for (const path of possiblePaths) {
+                    try {
+                        response = await fetch(path);
+                        if (response.ok) {
+                            console.log(`Successfully loaded Python code from: ${path}`);
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`Failed to fetch from ${path}:`, error.message);
+                    }
                 }
+                
+                if (!response || !response.ok) {
+                    throw new Error('Failed to load Python analysis code from any path');
+                }
+                
                 window.analysisCode = await response.text();
                 
                 console.log('Pyodide and analysis code loaded successfully');
