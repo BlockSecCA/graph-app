@@ -96,6 +96,37 @@
             background: #229954;
         }
 
+        .toolbar-input {
+            padding: 6px 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            min-width: 80px;
+        }
+
+        .toolbar-input.small {
+            min-width: 60px;
+            max-width: 80px;
+        }
+
+        .toolbar-select {
+            padding: 6px 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            min-width: 50px;
+        }
+
+        .toolbar button.danger {
+            background: #e74c3c;
+        }
+
+        .toolbar button.danger:hover {
+            background: #c0392b;
+        }
+
         /* Main Content Area */
         .main-content {
             height: calc(100vh - 60px);
@@ -128,68 +159,6 @@
             color: #2c3e50;
         }
 
-        .editor-controls {
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            min-height: 60px; /* Prevent collapse */
-        }
-
-        .control-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-shrink: 1; /* Allow shrinking */
-            min-width: 0; /* Allow content to shrink below natural size */
-        }
-
-        .control-group input {
-            padding: 6px 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            min-width: 80px; /* Minimum readable width */
-            max-width: 120px; /* Prevent too wide */
-            flex: 1; /* Take available space */
-        }
-
-        .control-group input[type="number"] {
-            max-width: 80px; /* Smaller for numbers */
-        }
-
-        .control-group select {
-            padding: 6px 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            max-width: 120px;
-        }
-
-        .control-group button {
-            padding: 6px 12px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .control-group button:hover {
-            background: #2980b9;
-        }
-
-        .control-group button.danger {
-            background: #e74c3c;
-        }
-
-        .control-group button.danger:hover {
-            background: #c0392b;
-        }
 
         .vis-network {
             flex: 1;
@@ -390,90 +359,6 @@
             }
         }
 
-        /* Narrow editor pane adaptations */
-        @media (max-width: 1200px) {
-            .control-group input {
-                min-width: 60px;
-                max-width: 100px;
-            }
-        }
-
-        /* Dynamic responsive classes based on pane width */
-        .editor-controls.narrow {
-            padding: 12px 15px;
-            gap: 8px;
-        }
-        
-        .editor-controls.narrow .control-group {
-            gap: 6px;
-        }
-        
-        .editor-controls.narrow .control-group input {
-            min-width: 60px;
-            max-width: 90px;
-            padding: 5px 7px;
-            font-size: 13px;
-        }
-        
-        .editor-controls.narrow .control-group button {
-            padding: 5px 10px;
-            font-size: 13px;
-        }
-        
-        .editor-controls.very-narrow {
-            padding: 10px 12px;
-            gap: 6px;
-        }
-        
-        .editor-controls.very-narrow .control-group {
-            gap: 4px;
-            flex-direction: column;
-            align-items: stretch;
-            margin-bottom: 5px;
-        }
-        
-        .editor-controls.very-narrow .control-group input {
-            min-width: 40px;
-            max-width: none;
-            width: 100%;
-            padding: 4px 6px;
-            font-size: 12px;
-        }
-        
-        .editor-controls.very-narrow .control-group button {
-            padding: 4px 8px;
-            font-size: 12px;
-            width: 100%;
-        }
-        
-        .editor-controls.very-narrow .control-group select {
-            width: 100%;
-            font-size: 12px;
-        }
-
-        /* Very narrow editor pane (fallback for media queries) */
-        @media (max-width: 900px) {
-            .editor-controls {
-                padding: 10px 15px;
-                gap: 8px;
-            }
-            
-            .control-group {
-                gap: 6px;
-            }
-            
-            .control-group input {
-                min-width: 50px;
-                max-width: 80px;
-                padding: 4px 6px;
-                font-size: 13px;
-            }
-            
-            .control-group button {
-                padding: 4px 8px;
-                font-size: 13px;
-            }
-        }
 
         /* Hide elements when not needed */
         .hidden {
@@ -494,13 +379,31 @@
         </div>
         
         <div class="toolbar-section">
+            <input type="text" id="node-id" placeholder="Node ID" class="toolbar-input" />
+            <input type="text" id="node-label" placeholder="Label" class="toolbar-input" />
+            <button id="add-node">Add Node</button>
+            <button id="delete-node" class="danger">Delete Node</button>
+        </div>
+        
+        <div class="toolbar-section">
+            <input type="text" id="edge-source" placeholder="From" class="toolbar-input" />
+            <input type="text" id="edge-target" placeholder="To" class="toolbar-input" />
+            <select id="edge-type" class="toolbar-select">
+                <option value="+">+</option>
+                <option value="-">-</option>
+            </select>
+            <input type="number" id="edge-weight" placeholder="Weight" step="0.1" min="0" value="1" class="toolbar-input small" />
+            <button id="add-edge">Add Edge</button>
+            <button id="delete-edge" class="danger">Delete Edge</button>
+        </div>
+        
+        <div class="toolbar-section">
             <span>Nodes: <span id="node-count">0</span></span>
             <span>Edges: <span id="edge-count">0</span></span>
         </div>
         
         <div class="toolbar-section">
-            <button id="toggle-layout">Toggle Layout</button>
-            <button id="fit-graph">Fit to View</button>
+            <button id="fit-graph">Fit Graph</button>
         </div>
     </div>
 
@@ -513,29 +416,7 @@
                     <h2>Graph Editor</h2>
                 </div>
                 
-                <!-- Editor Controls -->
-                <div class="editor-controls">
-                    <div class="control-group">
-                        <input type="text" id="node-id" placeholder="Node ID" />
-                        <input type="text" id="node-label" placeholder="Node Label" />
-                        <button id="add-node">Add Node</button>
-                        <button id="delete-node" class="danger">Delete Node</button>
-                    </div>
-                    
-                    <div class="control-group">
-                        <input type="text" id="edge-source" placeholder="Source ID" />
-                        <input type="text" id="edge-target" placeholder="Target ID" />
-                        <select id="edge-type">
-                            <option value="+">Positive (+)</option>
-                            <option value="-">Negative (-)</option>
-                        </select>
-                        <input type="number" id="edge-weight" placeholder="Weight" step="0.1" min="0" value="1" />
-                        <button id="add-edge">Add Edge</button>
-                        <button id="delete-edge" class="danger">Delete Edge</button>
-                    </div>
-                </div>
-                
-                <!-- Graph Network -->
+                <!-- Graph Network (takes full space) -->
                 <div id="editor-network" class="vis-network"></div>
             </div>
 
@@ -722,22 +603,6 @@
             
             let isResizing = false;
             
-            // Set up responsive control sizing based on pane width
-            function updateControlsForWidth() {
-                const editorWidth = editorPane.getBoundingClientRect().width;
-                const controls = document.querySelector('.editor-controls');
-                
-                // Remove existing responsive classes
-                controls.classList.remove('narrow', 'very-narrow');
-                
-                // Add appropriate class based on width
-                if (editorWidth < 500) {
-                    controls.classList.add('very-narrow');
-                } else if (editorWidth < 650) {
-                    controls.classList.add('narrow');
-                }
-            }
-            
             splitter.addEventListener('mousedown', (e) => {
                 isResizing = true;
                 document.body.style.cursor = 'col-resize';
@@ -776,9 +641,6 @@
                         if (analysisNetwork) {
                             analysisNetwork.fit();
                         }
-                        
-                        // Update controls responsiveness
-                        updateControlsForWidth();
                     }, 50);
                 }
             }
@@ -789,9 +651,6 @@
                 document.removeEventListener('mousemove', handleResize);
                 document.removeEventListener('mouseup', stopResize);
             }
-            
-            // Initial setup of responsive controls
-            setTimeout(updateControlsForWidth, 100);
         }
 
         function initializeEventHandlers() {
