@@ -173,16 +173,10 @@
             background: #c0392b;
         }
 
-        /* Graph Container */
-        .graph-container {
-            flex: 1;
-            position: relative;
-            background: white;
-        }
-
         .vis-network {
+            flex: 1;
             width: 100%;
-            height: 100%;
+            background: white;
         }
 
         /* Resizable Splitter */
@@ -438,10 +432,8 @@
                     </div>
                 </div>
                 
-                <!-- Graph Container -->
-                <div class="graph-container" data-container-type="editor">
-                    <div id="editor-network" class="vis-network"></div>
-                </div>
+                <!-- Graph Network -->
+                <div id="editor-network" class="vis-network"></div>
             </div>
 
             <!-- Resizable Splitter -->
