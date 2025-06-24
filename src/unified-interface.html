@@ -648,13 +648,17 @@
                 },
                 physics: {
                     enabled: true,
-                    stabilization: { iterations: 100 },
-                    solver: 'forceAtlas2Based',
-                    forceAtlas2Based: {
-                        gravitationalConstant: -26,
-                        centralGravity: 0.005,
-                        springLength: 230,
-                        springConstant: 0.18
+                    stabilization: { 
+                        enabled: true,
+                        iterations: 500,
+                        updateInterval: 25
+                    },
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.3,
+                        springLength: 95,
+                        springConstant: 0.04,
+                        damping: 0.09
                     }
                 },
                 interaction: {
@@ -696,13 +700,14 @@
         }
 
         function updateNetworkData(network, graphData) {
-            const nodes = new vis.DataSet(graphData.nodes.map(node => ({
+            const nodes = new vis.DataSet(graphData.nodes.map((node, index) => ({
                 id: node.id,
                 label: node.label || node.id,
                 group: node.group || 'default',
                 title: `${node.label || node.id}\nType: ${node.type || 'N/A'}\nGroup: ${node.group || 'default'}`,
-                x: node.x,
-                y: node.y
+                // Ensure nodes have positions - use provided or generate reasonable defaults
+                x: node.x !== undefined ? node.x : (index * 150) - (graphData.nodes.length * 75),
+                y: node.y !== undefined ? node.y : Math.sin(index * 0.8) * 100
             })));
 
             const edges = new vis.DataSet(graphData.edges.map(edge => ({
@@ -716,6 +721,18 @@
             })));
 
             network.setData({ nodes, edges });
+            
+            // Ensure nodes are visible by fitting the view
+            if (graphData.nodes.length > 0) {
+                setTimeout(() => {
+                    network.fit({
+                        animation: {
+                            duration: 1000,
+                            easingFunction: 'easeInOutQuad'
+                        }
+                    });
+                }, 300);
+            }
         }
 
         function updateStats(graphData) {
@@ -743,25 +760,64 @@
             let contextEdgeId = null;
             
             // Disable default context menu
-            const container = network.body.container;
+            const container = document.getElementById('editor-network');
+            console.log('Setting up context menu on container:', container);
+            
+            // Ensure network is fully initialized before setting up events
+            network.once('stabilizationIterationsDone', () => {
+                console.log('Network stabilized, context menus are ready');
+            });
+            
             container.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('Context menu triggered at:', e.clientX, e.clientY);
                 
                 contextPosition = { x: e.clientX, y: e.clientY };
-                const pointer = network.getPointer({ x: e.offsetX, y: e.offsetY });
-                const canvasPosition = { x: pointer.x, y: pointer.y };
                 
-                // Check what was clicked
-                const nodeId = network.getNodeAt(canvasPosition);
-                const edgeId = network.getEdgeAt(canvasPosition);
+                // Get canvas position relative to the container
+                const containerRect = container.getBoundingClientRect();
+                const canvasPosition = { 
+                    x: e.clientX - containerRect.left, 
+                    y: e.clientY - containerRect.top 
+                };
+                console.log('Canvas position:', canvasPosition);
+                
+                // Use vis-network API to get the clicked position
+                const domPointer = { x: e.offsetX, y: e.offsetY };
+                const networkPointer = network.DOMtoCanvas(domPointer);
+                
+                // Check what was clicked using vis-network methods
+                const nodeId = network.getNodeAt(domPointer);
+                const edgeId = network.getEdgeAt(domPointer);
+                console.log('Clicked on:', { nodeId, edgeId, domPointer, networkPointer });
                 
                 if (nodeId) {
                     showNodeContextMenu(e.clientX, e.clientY, nodeId);
                 } else if (edgeId) {
                     showEdgeContextMenu(e.clientX, e.clientY, edgeId);
                 } else {
-                    showCanvasContextMenu(e.clientX, e.clientY, canvasPosition);
+                    // Use network coordinates for adding nodes
+                    showCanvasContextMenu(e.clientX, e.clientY, networkPointer);
+                }
+            });
+            
+            // Also try adding the event listener to the canvas element directly
+            network.on('oncontext', (params) => {
+                console.log('vis-network oncontext event:', params);
+                if (params.event && params.event.preventDefault) {
+                    params.event.preventDefault();
+                    
+                    const canvasPosition = { x: params.pointer.canvas.x, y: params.pointer.canvas.y };
+                    const domPosition = { x: params.pointer.DOM.x, y: params.pointer.DOM.y };
+                    
+                    if (params.nodes && params.nodes.length > 0) {
+                        showNodeContextMenu(domPosition.x, domPosition.y, params.nodes[0]);
+                    } else if (params.edges && params.edges.length > 0) {
+                        showEdgeContextMenu(domPosition.x, domPosition.y, params.edges[0]);
+                    } else {
+                        showCanvasContextMenu(domPosition.x, domPosition.y, canvasPosition);
+                    }
                 }
             });
             
@@ -848,11 +904,17 @@
             
             function showEdgeContextMenu(x, y, edgeId) {
                 closeContextMenu();
+                console.log('Looking for edge with ID:', edgeId);
+                console.log('Available edges:', window.graphApp.state.currentGraph.edges);
                 
                 const edge = window.graphApp.state.currentGraph.edges.find(e => 
                     `${e.source}-${e.target}` === edgeId
                 );
-                if (!edge) return;
+                console.log('Found edge:', edge);
+                if (!edge) {
+                    console.warn('Edge not found for ID:', edgeId);
+                    return;
+                }
                 
                 contextMenu = document.createElement('div');
                 contextMenu.className = 'context-menu';
@@ -1019,13 +1081,25 @@
                     // Add node with explicit position if we have canvas position
                     const nodeData = { 
                         id, 
-                        label: label || id,
-                        // Add position data if available
-                        x: canvasPosition ? canvasPosition.x : undefined,
-                        y: canvasPosition ? canvasPosition.y : undefined
+                        label: label || id
                     };
                     
-                    console.log('Adding node with position:', nodeData);
+                    // Add position data if available from canvas click
+                    if (canvasPosition && canvasPosition.x !== undefined && canvasPosition.y !== undefined) {
+                        nodeData.x = canvasPosition.x;
+                        nodeData.y = canvasPosition.y;
+                        console.log('Adding node at canvas position:', canvasPosition);
+                    } else {
+                        // Generate a position near the center but not exactly at 0,0
+                        const existingNodes = window.graphApp.state.currentGraph.nodes.length;
+                        const angle = (existingNodes * 137.5) * (Math.PI / 180); // Golden angle for good distribution
+                        const radius = 50 + (existingNodes * 20);
+                        nodeData.x = Math.cos(angle) * radius;
+                        nodeData.y = Math.sin(angle) * radius;
+                        console.log('Adding node at generated position:', { x: nodeData.x, y: nodeData.y });
+                    }
+                    
+                    console.log('Adding node with data:', nodeData);
                     window.graphApp.addNode(nodeData);
                     showStatus(`Node "${id}" added successfully`, 'success');
                     closeModal();
@@ -1034,9 +1108,14 @@
                     setTimeout(() => {
                         const network = window.graphApp.networks.editor;
                         if (network) {
-                            network.fit();
+                            network.fit({
+                                animation: {
+                                    duration: 500,
+                                    easingFunction: 'easeInOutQuad'
+                                }
+                            });
                         }
-                    }, 100);
+                    }, 200);
                 } catch (error) {
                     showStatus(error.message, 'error');
                 }

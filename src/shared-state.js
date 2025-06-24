@@ -144,6 +144,11 @@ class GraphAppState extends EventTarget {
             detail: { nodeId, graph: this.state.currentGraph }
         }));
         
+        // Also dispatch graphUpdated to trigger visual updates
+        this.dispatchEvent(new CustomEvent('graphUpdated', {
+            detail: { graph: this.state.currentGraph }
+        }));
+        
         this.triggerAnalysis();
     }
     
@@ -157,6 +162,11 @@ class GraphAppState extends EventTarget {
         
         this.dispatchEvent(new CustomEvent('edgeDeleted', {
             detail: { source, target, graph: this.state.currentGraph }
+        }));
+        
+        // Also dispatch graphUpdated to trigger visual updates
+        this.dispatchEvent(new CustomEvent('graphUpdated', {
+            detail: { graph: this.state.currentGraph }
         }));
         
         this.triggerAnalysis();
