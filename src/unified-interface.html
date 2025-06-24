@@ -945,112 +945,171 @@
             }
         }
 
-        function initializeEventHandlers() {
-            // Node operations
-            const addNodeBtn = document.getElementById('add-node');
-            const deleteNodeBtn = document.getElementById('delete-node');
-            const addEdgeBtn = document.getElementById('add-edge');
-            const deleteEdgeBtn = document.getElementById('delete-edge');
+        function showAddNodeDialog(canvasPosition) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
             
-            console.log('Button elements found:', {
-                addNode: !!addNodeBtn,
-                deleteNode: !!deleteNodeBtn,
-                addEdge: !!addEdgeBtn,
-                deleteEdge: !!deleteEdgeBtn
+            const dialog = document.createElement('div');
+            dialog.className = 'modal-dialog';
+            
+            dialog.innerHTML = `
+                <h3 class="modal-title">Add New Node</h3>
+                <input type="text" id="modal-node-id" class="modal-input" placeholder="Node ID (required)" />
+                <input type="text" id="modal-node-label" class="modal-input" placeholder="Node Label (optional)" />
+                <div class="modal-buttons">
+                    <button class="modal-button secondary" onclick="closeModal()">Cancel</button>
+                    <button class="modal-button primary" onclick="createNode()">Add Node</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            // Focus the first input
+            setTimeout(() => {
+                document.getElementById('modal-node-id').focus();
+            }, 100);
+            
+            // Handle enter key
+            dialog.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    createNode();
+                }
             });
             
-            if (addNodeBtn) {
-                addNodeBtn.addEventListener('click', () => {
-                    console.log('Add Node button clicked');
-                    const id = document.getElementById('node-id').value.trim();
-                    const label = document.getElementById('node-label').value.trim();
-                    
-                    if (!id) {
-                        showStatus('Please enter a node ID', 'error');
-                        return;
+            window.closeModal = () => {
+                document.body.removeChild(overlay);
+                delete window.closeModal;
+                delete window.createNode;
+            };
+            
+            window.createNode = () => {
+                const id = document.getElementById('modal-node-id').value.trim();
+                const label = document.getElementById('modal-node-label').value.trim();
+                
+                if (!id) {
+                    showStatus('Please enter a node ID', 'error');
+                    return;
+                }
+                
+                try {
+                    window.graphApp.addNode({ id, label: label || id });
+                    showStatus(`Node "${id}" added successfully`, 'success');
+                    closeModal();
+                } catch (error) {
+                    showStatus(error.message, 'error');
+                }
+            };
+        }
+        
+        function showEditNodeDialog(node) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'modal-dialog';
+            
+            dialog.innerHTML = `
+                <h3 class="modal-title">Edit Node</h3>
+                <input type="text" id="modal-node-id" class="modal-input" placeholder="Node ID" value="${node.id}" readonly style="background: #f5f5f5;" />
+                <input type="text" id="modal-node-label" class="modal-input" placeholder="Node Label" value="${node.label || ''}" />
+                <div class="modal-buttons">
+                    <button class="modal-button secondary" onclick="closeModal()">Cancel</button>
+                    <button class="modal-button primary" onclick="updateNode()">Update Node</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            // Focus the label input
+            setTimeout(() => {
+                document.getElementById('modal-node-label').focus();
+            }, 100);
+            
+            window.closeModal = () => {
+                document.body.removeChild(overlay);
+                delete window.closeModal;
+                delete window.updateNode;
+            };
+            
+            window.updateNode = () => {
+                const label = document.getElementById('modal-node-label').value.trim();
+                
+                try {
+                    // Update the node label
+                    const nodeIndex = window.graphApp.state.currentGraph.nodes.findIndex(n => n.id === node.id);
+                    if (nodeIndex !== -1) {
+                        window.graphApp.state.currentGraph.nodes[nodeIndex].label = label || node.id;
+                        window.graphApp.dispatchEvent(new CustomEvent('graphUpdated', {
+                            detail: { graph: window.graphApp.state.currentGraph }
+                        }));
+                        showStatus(`Node "${node.id}" updated successfully`, 'success');
+                        closeModal();
                     }
-                    
-                    try {
-                        window.graphApp.addNode({ id, label: label || id });
-                        document.getElementById('node-id').value = '';
-                        document.getElementById('node-label').value = '';
-                        showStatus(`Node "${id}" added successfully`, 'success');
-                    } catch (error) {
-                        showStatus(error.message, 'error');
+                } catch (error) {
+                    showStatus(error.message, 'error');
+                }
+            };
+        }
+        
+        function showEditEdgeDialog(edge) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'modal-dialog';
+            
+            dialog.innerHTML = `
+                <h3 class="modal-title">Edit Edge</h3>
+                <input type="text" id="modal-edge-source" class="modal-input" value="${edge.source}" readonly style="background: #f5f5f5;" />
+                <input type="text" id="modal-edge-target" class="modal-input" value="${edge.target}" readonly style="background: #f5f5f5;" />
+                <select id="modal-edge-type" class="modal-input">
+                    <option value="+" ${edge.type === '+' ? 'selected' : ''}>Positive (+)</option>
+                    <option value="-" ${edge.type === '-' ? 'selected' : ''}>Negative (-)</option>
+                </select>
+                <input type="number" id="modal-edge-weight" class="modal-input" placeholder="Weight" value="${edge.weight || 1}" step="0.1" min="0" />
+                <div class="modal-buttons">
+                    <button class="modal-button secondary" onclick="closeModal()">Cancel</button>
+                    <button class="modal-button primary" onclick="updateEdge()">Update Edge</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            window.closeModal = () => {
+                document.body.removeChild(overlay);
+                delete window.closeModal;
+                delete window.updateEdge;
+            };
+            
+            window.updateEdge = () => {
+                const type = document.getElementById('modal-edge-type').value;
+                const weight = parseFloat(document.getElementById('modal-edge-weight').value) || 1;
+                
+                try {
+                    // Update the edge
+                    const edgeIndex = window.graphApp.state.currentGraph.edges.findIndex(e => 
+                        e.source === edge.source && e.target === edge.target
+                    );
+                    if (edgeIndex !== -1) {
+                        window.graphApp.state.currentGraph.edges[edgeIndex].type = type;
+                        window.graphApp.state.currentGraph.edges[edgeIndex].weight = weight;
+                        window.graphApp.dispatchEvent(new CustomEvent('graphUpdated', {
+                            detail: { graph: window.graphApp.state.currentGraph }
+                        }));
+                        showStatus(`Edge "${edge.source} → ${edge.target}" updated successfully`, 'success');
+                        closeModal();
                     }
-                });
-            }
+                } catch (error) {
+                    showStatus(error.message, 'error');
+                }
+            };
+        }
 
-            if (deleteNodeBtn) {
-                deleteNodeBtn.addEventListener('click', () => {
-                    console.log('Delete Node button clicked');
-                    const id = document.getElementById('node-id').value.trim();
-                    
-                    if (!id) {
-                        showStatus('Please enter a node ID to delete', 'error');
-                        return;
-                    }
-                    
-                    try {
-                        window.graphApp.deleteNode(id);
-                        document.getElementById('node-id').value = '';
-                        document.getElementById('node-label').value = '';
-                        showStatus(`Node "${id}" deleted successfully`, 'success');
-                    } catch (error) {
-                        showStatus(error.message, 'error');
-                    }
-                });
-            }
-
-            // Edge operations
-            if (addEdgeBtn) {
-                addEdgeBtn.addEventListener('click', () => {
-                    console.log('Add Edge button clicked');
-                    const source = document.getElementById('edge-source').value.trim();
-                    const target = document.getElementById('edge-target').value.trim();
-                    const type = document.getElementById('edge-type').value;
-                    const weight = parseFloat(document.getElementById('edge-weight').value) || 1;
-                    
-                    if (!source || !target) {
-                        showStatus('Please enter both source and target IDs', 'error');
-                        return;
-                    }
-                    
-                    try {
-                        window.graphApp.addEdge({ source, target, type, weight });
-                        document.getElementById('edge-source').value = '';
-                        document.getElementById('edge-target').value = '';
-                        document.getElementById('edge-weight').value = '1';
-                        showStatus(`Edge "${source} → ${target}" added successfully`, 'success');
-                    } catch (error) {
-                        showStatus(error.message, 'error');
-                    }
-                });
-            }
-
-            if (deleteEdgeBtn) {
-                deleteEdgeBtn.addEventListener('click', () => {
-                    console.log('Delete Edge button clicked');
-                    const source = document.getElementById('edge-source').value.trim();
-                    const target = document.getElementById('edge-target').value.trim();
-                    
-                    if (!source || !target) {
-                        showStatus('Please enter both source and target IDs to delete edge', 'error');
-                        return;
-                    }
-                    
-                    try {
-                        window.graphApp.deleteEdge(source, target);
-                        document.getElementById('edge-source').value = '';
-                        document.getElementById('edge-target').value = '';
-                        showStatus(`Edge "${source} → ${target}" deleted successfully`, 'success');
-                    } catch (error) {
-                        showStatus(error.message, 'error');
-                    }
-                });
-            }
-
-            // File operations
+        function initializeEventHandlers() {
+            // File operations (still needed for compatibility)
             document.getElementById('file-input').addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -1070,13 +1129,7 @@
             // File operations (now handled by menu, but keeping for compatibility)
             // These elements no longer exist in toolbar but IDs might be referenced elsewhere
 
-            // Graph operations
-            document.getElementById('fit-graph').addEventListener('click', () => {
-                const network = window.graphApp.networks.editor;
-                if (network) {
-                    network.fit();
-                }
-            });
+            // Graph operations handled by menu now
 
             // Analysis operations
             document.getElementById('run-analysis').addEventListener('click', () => {
