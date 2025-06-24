@@ -371,12 +371,6 @@
     <div class="toolbar">
         <h1>Causal Graph Tool</h1>
         
-        <div class="toolbar-section">
-            <label for="file-input">Load Graph</label>
-            <input type="file" id="file-input" accept=".json">
-            <button id="save-graph">Save Graph</button>
-            <button id="new-graph">New Graph</button>
-        </div>
         
         <div class="toolbar-section">
             <input type="text" id="node-id" placeholder="Node ID" class="toolbar-input" />
@@ -466,6 +460,9 @@
     <!-- Status Messages Container -->
     <div id="status-container"></div>
 
+    <!-- Hidden file input for menu operations -->
+    <input type="file" id="file-input" accept=".json" style="display: none;">
+
     <!-- Include Shared State -->
     <script src="shared-state.js"></script>
 
@@ -474,6 +471,26 @@
         // Initialize the unified interface
         document.addEventListener('DOMContentLoaded', function() {
             initializeUnifiedInterface();
+            
+            // Set up IPC listeners for menu commands
+            if (window.require) {
+                const { ipcRenderer } = window.require('electron');
+                
+                ipcRenderer.on('menu-new-graph', () => {
+                    if (confirm('Create a new graph? This will clear the current graph.')) {
+                        window.graphApp.updateGraph({ nodes: [], edges: [] });
+                        showStatus('New graph created', 'info');
+                    }
+                });
+                
+                ipcRenderer.on('menu-load-graph', () => {
+                    document.getElementById('file-input').click();
+                });
+                
+                ipcRenderer.on('menu-save-graph', () => {
+                    saveGraphFile();
+                });
+            }
         });
 
         async function initializeUnifiedInterface() {
@@ -653,6 +670,26 @@
             }
         }
 
+        function saveGraphFile() {
+            try {
+                const jsonData = window.graphApp.exportGraph();
+                const blob = new Blob([jsonData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'graph.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('Graph saved successfully', 'success');
+            } catch (error) {
+                showStatus(`Failed to save graph: ${error.message}`, 'error');
+            }
+        }
+
         function initializeEventHandlers() {
             // Node operations
             document.getElementById('add-node').addEventListener('click', () => {
@@ -751,32 +788,8 @@
                 reader.readAsText(file);
             });
 
-            document.getElementById('save-graph').addEventListener('click', () => {
-                try {
-                    const jsonData = window.graphApp.exportGraph();
-                    const blob = new Blob([jsonData], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'graph.json';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    
-                    showStatus('Graph saved successfully', 'success');
-                } catch (error) {
-                    showStatus(`Failed to save graph: ${error.message}`, 'error');
-                }
-            });
-
-            document.getElementById('new-graph').addEventListener('click', () => {
-                if (confirm('Create a new graph? This will clear the current graph.')) {
-                    window.graphApp.updateGraph({ nodes: [], edges: [] });
-                    showStatus('New graph created', 'info');
-                }
-            });
+            // File operations (now handled by menu, but keeping for compatibility)
+            // These elements no longer exist in toolbar but IDs might be referenced elsewhere
 
             // Graph operations
             document.getElementById('fit-graph').addEventListener('click', () => {

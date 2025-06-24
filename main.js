@@ -56,6 +56,38 @@ const menuTemplate = [
     {
         label: 'File',
         submenu: [
+            { 
+                label: 'New Graph', 
+                accelerator: 'CmdOrCtrl+N',
+                click: () => {
+                    const win = BrowserWindow.getFocusedWindow();
+                    if (win) {
+                        win.webContents.send('menu-new-graph');
+                    }
+                }
+            },
+            { type: 'separator' },
+            { 
+                label: 'Load Graph...', 
+                accelerator: 'CmdOrCtrl+O',
+                click: () => {
+                    const win = BrowserWindow.getFocusedWindow();
+                    if (win) {
+                        win.webContents.send('menu-load-graph');
+                    }
+                }
+            },
+            { 
+                label: 'Save Graph...', 
+                accelerator: 'CmdOrCtrl+S',
+                click: () => {
+                    const win = BrowserWindow.getFocusedWindow();
+                    if (win) {
+                        win.webContents.send('menu-save-graph');
+                    }
+                }
+            },
+            { type: 'separator' },
             { label: 'Exit', role: 'quit' }
         ]
     },
