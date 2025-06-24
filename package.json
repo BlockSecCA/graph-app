@@ -1,13 +1,22 @@
 {
   "name": "causal-graph-tool",
   "version": "1.0.0",
+  "description": "Simple causal graph editor and analysis tool",
+  "author": "BlockSecCA",
   "license": "MIT",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "pack": "electron-packager . MyApp --platform=win32 --arch=x64 --out=dist/ --overwrite",
+    "pack": "electron-packager . \"Causal Graph Tool\" --platform=win32 --arch=x64 --out=dist/ --overwrite",
     "build": "electron-builder",
-    "test": "jest"
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder -mwl",
+    "test": "jest",
+    "version": "npm version",
+    "preversion": "npm test",
+    "postversion": "git push && git push --tags"
   },
   "devDependencies": {
     "electron": "^25.0.0",
@@ -16,10 +25,25 @@
     "jest": "^29.7.0"
   },
   "build": {
-    "appId": "com.example.myapp",
-    "productName": "Causal-Graph-Tool",
+    "appId": "com.blocksecca.causal-graph-tool",
+    "productName": "Causal Graph Tool",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!**/*.md",
+      "!.git",
+      "!__tests__",
+      "!dist",
+      "!node_modules/.cache"
+    ],
     "win": {
-      "target": "nsis"
+      "target": [{
+        "target": "nsis",
+        "arch": ["x64"]
+      }],
+      "icon": "assets/icon.ico"
     },
     "mac": {
       "target": "dmg"
