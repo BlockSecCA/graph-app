@@ -117,6 +117,7 @@
             display: flex;
             flex-direction: column;
             border-right: 1px solid #ddd;
+            position: relative;  /* Ensure controls stay within pane */
         }
 
         .editor-header {
@@ -177,12 +178,15 @@
             flex: 1;
             position: relative;
             background: white;
-            overflow: hidden;
+            overflow: visible;  /* Allow graph to be dragged beyond container */
+            min-height: 300px;
         }
 
         .vis-network {
             width: 100%;
             height: 100%;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
         }
 
         /* Resizable Splitter */
@@ -818,44 +822,177 @@
         }
 
         async function initializeAnalysisSystem() {
-            // Placeholder for now - will implement plugin system
-            console.log('Analysis system initialized (placeholder)');
+            console.log('Initializing Pyodide for Python analysis...');
             
-            // Mock plugin for testing
-            window.graphApp.state.availablePlugins.set('causal-paths', {
-                analyze: async (graph, params) => {
-                    // Simulate analysis delay
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    return {
-                        metadata: {
-                            analysis_id: 'causal-paths',
-                            timestamp: new Date().toISOString()
-                        },
-                        results: {
-                            primary: {
-                                node_count: graph.nodes.length,
-                                edge_count: graph.edges.length,
-                                summary: `Graph with ${graph.nodes.length} nodes and ${graph.edges.length} edges`
-                            }
-                        },
-                        summary: `Analyzed graph structure. Found ${graph.nodes.length} nodes and ${graph.edges.length} edges.`
-                    };
+            try {
+                // Load Pyodide and networkx
+                window.pyodideInstance = await loadPyodide();
+                await window.pyodideInstance.loadPackage('networkx');
+                
+                // Load the Python analysis code
+                const response = await fetch('../py/test_pyodide.py');
+                if (!response.ok) {
+                    throw new Error(`Failed to load Python analysis: ${response.status}`);
                 }
-            });
+                window.analysisCode = await response.text();
+                
+                console.log('Pyodide and analysis code loaded successfully');
+                
+                // Real Python analysis plugin
+                window.graphApp.state.availablePlugins.set('causal-paths', {
+                    analyze: async (graph, params) => {
+                        if (!window.pyodideInstance || !window.analysisCode) {
+                            throw new Error('Python analysis system not initialized');
+                        }
+                        
+                        if (graph.nodes.length === 0) {
+                            throw new Error('No nodes in graph to analyze');
+                        }
+                        
+                        try {
+                            // Set graph data in Pyodide globals
+                            const graphData = {
+                                nodes: graph.nodes,
+                                edges: graph.edges
+                            };
+                            
+                            window.pyodideInstance.globals.set("GraphData", graphData);
+                            
+                            // Run the Python analysis
+                            const result = await window.pyodideInstance.runPythonAsync(window.analysisCode);
+                            
+                            // Convert result to JavaScript object
+                            const jsResult = result.toJs ? result.toJs() : result;
+                            
+                            return {
+                                metadata: {
+                                    analysis_id: 'causal-paths',
+                                    analysis_name: 'Causal Path Analysis',
+                                    timestamp: new Date().toISOString(),
+                                    parameters_used: params,
+                                    graph_stats: {
+                                        nodes: graph.nodes.length,
+                                        edges: graph.edges.length
+                                    }
+                                },
+                                results: {
+                                    primary: {
+                                        influence_scores: jsResult.influence_scores || {},
+                                        positive_paths: jsResult.positive_paths || [],
+                                        negative_paths: jsResult.negative_paths || []
+                                    }
+                                },
+                                summary: formatAnalysisSummary(jsResult)
+                            };
+                            
+                        } catch (error) {
+                            console.error('Python analysis error:', error);
+                            throw new Error(`Analysis failed: ${error.message}`);
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Failed to initialize analysis system:', error);
+                
+                // Fallback to basic analysis if Python fails
+                window.graphApp.state.availablePlugins.set('causal-paths', {
+                    analyze: async (graph, params) => {
+                        return {
+                            metadata: {
+                                analysis_id: 'causal-paths-fallback',
+                                timestamp: new Date().toISOString()
+                            },
+                            results: {
+                                primary: {
+                                    error: 'Python analysis unavailable',
+                                    basic_stats: {
+                                        node_count: graph.nodes.length,
+                                        edge_count: graph.edges.length
+                                    }
+                                }
+                            },
+                            summary: `Basic analysis: ${graph.nodes.length} nodes, ${graph.edges.length} edges. Python analysis unavailable.`
+                        };
+                    }
+                });
+            }
+        }
+        
+        function formatAnalysisSummary(results) {
+            const lines = [];
+            
+            if (results.influence_scores) {
+                const scores = Object.entries(results.influence_scores);
+                if (scores.length > 0) {
+                    const topNode = scores.reduce((a, b) => a[1] > b[1] ? a : b);
+                    lines.push(`Highest influence: ${topNode[0]} (${topNode[1]})`);
+                }
+            }
+            
+            if (results.positive_paths && results.positive_paths.length > 0) {
+                lines.push(`Found ${results.positive_paths.length} positive path(s)`);
+            }
+            
+            if (results.negative_paths && results.negative_paths.length > 0) {
+                lines.push(`Found ${results.negative_paths.length} negative path(s)`);
+            }
+            
+            return lines.length > 0 ? lines.join('. ') + '.' : 'Analysis completed successfully.';
         }
 
         function displayAnalysisResults(results) {
             const container = document.getElementById('results-content');
-            container.innerHTML = `
-                <div style="margin-bottom: 15px;">
-                    <strong>Summary:</strong> ${results.summary}
-                </div>
-                <div>
-                    <strong>Results:</strong>
-                    <pre>${JSON.stringify(results.results, null, 2)}</pre>
-                </div>
-            `;
+            
+            let html = `<div style="margin-bottom: 15px;"><strong>Summary:</strong> ${results.summary}</div>`;
+            
+            if (results.results && results.results.primary) {
+                const primary = results.results.primary;
+                
+                // Display influence scores
+                if (primary.influence_scores && Object.keys(primary.influence_scores).length > 0) {
+                    html += `<div style="margin-bottom: 15px;">
+                        <strong>Influence Scores:</strong>
+                        <div style="margin-left: 10px;">`;
+                    
+                    Object.entries(primary.influence_scores).forEach(([node, score]) => {
+                        html += `<div>${node}: ${score}</div>`;
+                    });
+                    html += `</div></div>`;
+                }
+                
+                // Display positive paths
+                if (primary.positive_paths && primary.positive_paths.length > 0) {
+                    html += `<div style="margin-bottom: 15px;">
+                        <strong>Positive Paths:</strong>
+                        <div style="margin-left: 10px;">`;
+                    
+                    primary.positive_paths.forEach(path => {
+                        html += `<div>${path.join(' → ')}</div>`;
+                    });
+                    html += `</div></div>`;
+                }
+                
+                // Display negative paths
+                if (primary.negative_paths && primary.negative_paths.length > 0) {
+                    html += `<div style="margin-bottom: 15px;">
+                        <strong>Negative Paths:</strong>
+                        <div style="margin-left: 10px;">`;
+                    
+                    primary.negative_paths.forEach(path => {
+                        html += `<div>${path.join(' → ')}</div>`;
+                    });
+                    html += `</div></div>`;
+                }
+                
+                // If no meaningful results, show raw data
+                if (!primary.influence_scores && !primary.positive_paths && !primary.negative_paths) {
+                    html += `<div><strong>Raw Results:</strong>
+                        <pre style="font-size: 12px;">${JSON.stringify(primary, null, 2)}</pre></div>`;
+                }
+            }
+            
+            container.innerHTML = html;
         }
 
         function showStatus(message, type = 'info') {
