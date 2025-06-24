@@ -360,6 +360,120 @@
         }
 
 
+        /* Context Menu Styles */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            min-width: 150px;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+
+        .context-menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .context-menu-item:hover {
+            background: #f5f5f5;
+        }
+
+        .context-menu-item.danger {
+            color: #e74c3c;
+        }
+
+        .context-menu-item.danger:hover {
+            background: #fdf2f2;
+        }
+
+        .context-menu-separator {
+            height: 1px;
+            background: #eee;
+            margin: 4px 0;
+        }
+
+        /* Modal dialog styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+
+        .modal-dialog {
+            background: white;
+            border-radius: 6px;
+            padding: 20px;
+            min-width: 300px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .modal-title {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .modal-button.primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .modal-button.primary:hover {
+            background: #2980b9;
+        }
+
+        .modal-button.secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .modal-button.secondary:hover {
+            background: #7f8c8d;
+        }
+
         /* Hide elements when not needed */
         .hidden {
             display: none !important;
@@ -373,31 +487,12 @@
         
         
         <div class="toolbar-section">
-            <input type="text" id="node-id" placeholder="Node ID" class="toolbar-input" />
-            <input type="text" id="node-label" placeholder="Label" class="toolbar-input" />
-            <button id="add-node">Add Node</button>
-            <button id="delete-node" class="danger">Delete Node</button>
-        </div>
-        
-        <div class="toolbar-section">
-            <input type="text" id="edge-source" placeholder="From" class="toolbar-input" />
-            <input type="text" id="edge-target" placeholder="To" class="toolbar-input" />
-            <select id="edge-type" class="toolbar-select">
-                <option value="+">+</option>
-                <option value="-">-</option>
-            </select>
-            <input type="number" id="edge-weight" placeholder="Weight" step="0.1" min="0" value="1" class="toolbar-input small" />
-            <button id="add-edge">Add Edge</button>
-            <button id="delete-edge" class="danger">Delete Edge</button>
-        </div>
-        
-        <div class="toolbar-section">
             <span>Nodes: <span id="node-count">0</span></span>
             <span>Edges: <span id="edge-count">0</span></span>
         </div>
         
         <div class="toolbar-section">
-            <button id="fit-graph">Fit Graph</button>
+            <span id="mode-indicator">Right-click canvas to add nodes</span>
         </div>
     </div>
 
@@ -501,6 +596,14 @@
                         saveGraphFile();
                     });
                     
+                    ipcRenderer.on('menu-fit-graph', () => {
+                        console.log('Menu: Fit Graph clicked');
+                        const network = window.graphApp.networks.editor;
+                        if (network) {
+                            network.fit();
+                        }
+                    });
+                    
                 } catch (error) {
                     console.error('Failed to set up IPC listeners:', error);
                 }
@@ -581,28 +684,8 @@
                 updateStats(e.detail.graph);
             });
             
-            // Handle network selection for easier editing
-            editorNetwork.on('selectNode', function(params) {
-                if (params.nodes.length > 0) {
-                    document.getElementById('node-id').value = params.nodes[0];
-                }
-            });
-            
-            editorNetwork.on('selectEdge', function(params) {
-                if (params.edges.length > 0) {
-                    const edgeId = params.edges[0];
-                    const edge = window.graphApp.state.currentGraph.edges.find(e => 
-                        `${e.source}-${e.target}` === edgeId
-                    );
-                    if (edge) {
-                        document.getElementById('edge-source').value = edge.source;
-                        document.getElementById('edge-target').value = edge.target;
-                        document.getElementById('edge-type').value = edge.type || '+';
-                        document.getElementById('edge-weight').value = edge.weight || 1;
-                        console.log('Edge selected:', edge);
-                    }
-                }
-            });
+            // Add context menu support
+            setupContextMenus(editorNetwork);
         }
 
         function updateNetworkData(network, graphData) {
@@ -629,6 +712,159 @@
         function updateStats(graphData) {
             document.getElementById('node-count').textContent = graphData.nodes.length;
             document.getElementById('edge-count').textContent = graphData.edges.length;
+        }
+
+        function setupContextMenus(network) {
+            let contextMenu = null;
+            let contextPosition = { x: 0, y: 0 };
+            let contextNodeId = null;
+            let contextEdgeId = null;
+            
+            // Disable default context menu
+            const container = network.body.container;
+            container.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                contextPosition = { x: e.clientX, y: e.clientY };
+                const canvasPosition = network.canvasToDOM({ x: e.offsetX, y: e.offsetY });
+                
+                // Check what was clicked
+                const nodeId = network.getNodeAt(canvasPosition);
+                const edgeId = network.getEdgeAt(canvasPosition);
+                
+                if (nodeId) {
+                    showNodeContextMenu(e.clientX, e.clientY, nodeId);
+                } else if (edgeId) {
+                    showEdgeContextMenu(e.clientX, e.clientY, edgeId);
+                } else {
+                    showCanvasContextMenu(e.clientX, e.clientY, canvasPosition);
+                }
+            });
+            
+            // Close context menu on click elsewhere
+            document.addEventListener('click', () => {
+                closeContextMenu();
+            });
+            
+            // Close context menu on escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeContextMenu();
+                }
+            });
+            
+            function closeContextMenu() {
+                if (contextMenu) {
+                    document.body.removeChild(contextMenu);
+                    contextMenu = null;
+                }
+            }
+            
+            function showCanvasContextMenu(x, y, canvasPosition) {
+                closeContextMenu();
+                
+                contextMenu = document.createElement('div');
+                contextMenu.className = 'context-menu';
+                contextMenu.style.left = x + 'px';
+                contextMenu.style.top = y + 'px';
+                
+                const addNodeItem = document.createElement('button');
+                addNodeItem.className = 'context-menu-item';
+                addNodeItem.innerHTML = '➕ Add Node';
+                addNodeItem.onclick = (e) => {
+                    e.stopPropagation();
+                    closeContextMenu();
+                    showAddNodeDialog(canvasPosition);
+                };
+                
+                contextMenu.appendChild(addNodeItem);
+                document.body.appendChild(contextMenu);
+            }
+            
+            function showNodeContextMenu(x, y, nodeId) {
+                closeContextMenu();
+                
+                const node = window.graphApp.state.currentGraph.nodes.find(n => n.id === nodeId);
+                if (!node) return;
+                
+                contextMenu = document.createElement('div');
+                contextMenu.className = 'context-menu';
+                contextMenu.style.left = x + 'px';
+                contextMenu.style.top = y + 'px';
+                
+                const editItem = document.createElement('button');
+                editItem.className = 'context-menu-item';
+                editItem.innerHTML = '✏️ Edit Node';
+                editItem.onclick = (e) => {
+                    e.stopPropagation();
+                    closeContextMenu();
+                    showEditNodeDialog(node);
+                };
+                
+                const separator = document.createElement('div');
+                separator.className = 'context-menu-separator';
+                
+                const deleteItem = document.createElement('button');
+                deleteItem.className = 'context-menu-item danger';
+                deleteItem.innerHTML = '🗑️ Delete Node';
+                deleteItem.onclick = (e) => {
+                    e.stopPropagation();
+                    closeContextMenu();
+                    if (confirm(`Delete node "${node.label || node.id}"?`)) {
+                        window.graphApp.deleteNode(nodeId);
+                        showStatus(`Node "${node.label || node.id}" deleted`, 'success');
+                    }
+                };
+                
+                contextMenu.appendChild(editItem);
+                contextMenu.appendChild(separator);
+                contextMenu.appendChild(deleteItem);
+                document.body.appendChild(contextMenu);
+            }
+            
+            function showEdgeContextMenu(x, y, edgeId) {
+                closeContextMenu();
+                
+                const edge = window.graphApp.state.currentGraph.edges.find(e => 
+                    `${e.source}-${e.target}` === edgeId
+                );
+                if (!edge) return;
+                
+                contextMenu = document.createElement('div');
+                contextMenu.className = 'context-menu';
+                contextMenu.style.left = x + 'px';
+                contextMenu.style.top = y + 'px';
+                
+                const editItem = document.createElement('button');
+                editItem.className = 'context-menu-item';
+                editItem.innerHTML = '✏️ Edit Edge';
+                editItem.onclick = (e) => {
+                    e.stopPropagation();
+                    closeContextMenu();
+                    showEditEdgeDialog(edge);
+                };
+                
+                const separator = document.createElement('div');
+                separator.className = 'context-menu-separator';
+                
+                const deleteItem = document.createElement('button');
+                deleteItem.className = 'context-menu-item danger';
+                deleteItem.innerHTML = '🗑️ Delete Edge';
+                deleteItem.onclick = (e) => {
+                    e.stopPropagation();
+                    closeContextMenu();
+                    if (confirm(`Delete edge "${edge.source} → ${edge.target}"?`)) {
+                        window.graphApp.deleteEdge(edge.source, edge.target);
+                        showStatus(`Edge "${edge.source} → ${edge.target}" deleted`, 'success');
+                    }
+                };
+                
+                contextMenu.appendChild(editItem);
+                contextMenu.appendChild(separator);
+                contextMenu.appendChild(deleteItem);
+                document.body.appendChild(contextMenu);
+            }
         }
 
         function initializeSplitter() {

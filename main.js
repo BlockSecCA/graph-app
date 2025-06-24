@@ -117,6 +117,17 @@ const menuTemplate = [
     {
         label: 'View',
         submenu: [
+            { 
+                label: 'Fit Graph to View', 
+                accelerator: 'CmdOrCtrl+0',
+                click: () => {
+                    const win = BrowserWindow.getFocusedWindow();
+                    if (win) {
+                        win.webContents.send('menu-fit-graph');
+                    }
+                }
+            },
+            { type: 'separator' },
             { label: 'Reload', role: 'reload' },
             { label: 'Toggle Developer Tools', role: 'toggledevtools' }
         ]
