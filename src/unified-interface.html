@@ -590,13 +590,16 @@
             
             editorNetwork.on('selectEdge', function(params) {
                 if (params.edges.length > 0) {
+                    const edgeId = params.edges[0];
                     const edge = window.graphApp.state.currentGraph.edges.find(e => 
-                        `${e.source}-${e.target}` === params.edges[0] || 
-                        `${e.target}-${e.source}` === params.edges[0]
+                        `${e.source}-${e.target}` === edgeId
                     );
                     if (edge) {
                         document.getElementById('edge-source').value = edge.source;
                         document.getElementById('edge-target').value = edge.target;
+                        document.getElementById('edge-type').value = edge.type || '+';
+                        document.getElementById('edge-weight').value = edge.weight || 1;
+                        console.log('Edge selected:', edge);
                     }
                 }
             });
@@ -708,84 +711,108 @@
 
         function initializeEventHandlers() {
             // Node operations
-            document.getElementById('add-node').addEventListener('click', () => {
-                const id = document.getElementById('node-id').value.trim();
-                const label = document.getElementById('node-label').value.trim();
-                
-                if (!id) {
-                    showStatus('Please enter a node ID', 'error');
-                    return;
-                }
-                
-                try {
-                    window.graphApp.addNode({ id, label: label || id });
-                    document.getElementById('node-id').value = '';
-                    document.getElementById('node-label').value = '';
-                    showStatus(`Node "${id}" added successfully`, 'success');
-                } catch (error) {
-                    showStatus(error.message, 'error');
-                }
+            const addNodeBtn = document.getElementById('add-node');
+            const deleteNodeBtn = document.getElementById('delete-node');
+            const addEdgeBtn = document.getElementById('add-edge');
+            const deleteEdgeBtn = document.getElementById('delete-edge');
+            
+            console.log('Button elements found:', {
+                addNode: !!addNodeBtn,
+                deleteNode: !!deleteNodeBtn,
+                addEdge: !!addEdgeBtn,
+                deleteEdge: !!deleteEdgeBtn
             });
+            
+            if (addNodeBtn) {
+                addNodeBtn.addEventListener('click', () => {
+                    console.log('Add Node button clicked');
+                    const id = document.getElementById('node-id').value.trim();
+                    const label = document.getElementById('node-label').value.trim();
+                    
+                    if (!id) {
+                        showStatus('Please enter a node ID', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        window.graphApp.addNode({ id, label: label || id });
+                        document.getElementById('node-id').value = '';
+                        document.getElementById('node-label').value = '';
+                        showStatus(`Node "${id}" added successfully`, 'success');
+                    } catch (error) {
+                        showStatus(error.message, 'error');
+                    }
+                });
+            }
 
-            document.getElementById('delete-node').addEventListener('click', () => {
-                const id = document.getElementById('node-id').value.trim();
-                
-                if (!id) {
-                    showStatus('Please enter a node ID to delete', 'error');
-                    return;
-                }
-                
-                try {
-                    window.graphApp.deleteNode(id);
-                    document.getElementById('node-id').value = '';
-                    document.getElementById('node-label').value = '';
-                    showStatus(`Node "${id}" deleted successfully`, 'success');
-                } catch (error) {
-                    showStatus(error.message, 'error');
-                }
-            });
+            if (deleteNodeBtn) {
+                deleteNodeBtn.addEventListener('click', () => {
+                    console.log('Delete Node button clicked');
+                    const id = document.getElementById('node-id').value.trim();
+                    
+                    if (!id) {
+                        showStatus('Please enter a node ID to delete', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        window.graphApp.deleteNode(id);
+                        document.getElementById('node-id').value = '';
+                        document.getElementById('node-label').value = '';
+                        showStatus(`Node "${id}" deleted successfully`, 'success');
+                    } catch (error) {
+                        showStatus(error.message, 'error');
+                    }
+                });
+            }
 
             // Edge operations
-            document.getElementById('add-edge').addEventListener('click', () => {
-                const source = document.getElementById('edge-source').value.trim();
-                const target = document.getElementById('edge-target').value.trim();
-                const type = document.getElementById('edge-type').value;
-                const weight = parseFloat(document.getElementById('edge-weight').value) || 1;
-                
-                if (!source || !target) {
-                    showStatus('Please enter both source and target IDs', 'error');
-                    return;
-                }
-                
-                try {
-                    window.graphApp.addEdge({ source, target, type, weight });
-                    document.getElementById('edge-source').value = '';
-                    document.getElementById('edge-target').value = '';
-                    document.getElementById('edge-weight').value = '1';
-                    showStatus(`Edge "${source} → ${target}" added successfully`, 'success');
-                } catch (error) {
-                    showStatus(error.message, 'error');
-                }
-            });
+            if (addEdgeBtn) {
+                addEdgeBtn.addEventListener('click', () => {
+                    console.log('Add Edge button clicked');
+                    const source = document.getElementById('edge-source').value.trim();
+                    const target = document.getElementById('edge-target').value.trim();
+                    const type = document.getElementById('edge-type').value;
+                    const weight = parseFloat(document.getElementById('edge-weight').value) || 1;
+                    
+                    if (!source || !target) {
+                        showStatus('Please enter both source and target IDs', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        window.graphApp.addEdge({ source, target, type, weight });
+                        document.getElementById('edge-source').value = '';
+                        document.getElementById('edge-target').value = '';
+                        document.getElementById('edge-weight').value = '1';
+                        showStatus(`Edge "${source} → ${target}" added successfully`, 'success');
+                    } catch (error) {
+                        showStatus(error.message, 'error');
+                    }
+                });
+            }
 
-            document.getElementById('delete-edge').addEventListener('click', () => {
-                const source = document.getElementById('edge-source').value.trim();
-                const target = document.getElementById('edge-target').value.trim();
-                
-                if (!source || !target) {
-                    showStatus('Please enter both source and target IDs to delete edge', 'error');
-                    return;
-                }
-                
-                try {
-                    window.graphApp.deleteEdge(source, target);
-                    document.getElementById('edge-source').value = '';
-                    document.getElementById('edge-target').value = '';
-                    showStatus(`Edge "${source} → ${target}" deleted successfully`, 'success');
-                } catch (error) {
-                    showStatus(error.message, 'error');
-                }
-            });
+            if (deleteEdgeBtn) {
+                deleteEdgeBtn.addEventListener('click', () => {
+                    console.log('Delete Edge button clicked');
+                    const source = document.getElementById('edge-source').value.trim();
+                    const target = document.getElementById('edge-target').value.trim();
+                    
+                    if (!source || !target) {
+                        showStatus('Please enter both source and target IDs to delete edge', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        window.graphApp.deleteEdge(source, target);
+                        document.getElementById('edge-source').value = '';
+                        document.getElementById('edge-target').value = '';
+                        showStatus(`Edge "${source} → ${target}" deleted successfully`, 'success');
+                    } catch (error) {
+                        showStatus(error.message, 'error');
+                    }
+                });
+            }
 
             // File operations
             document.getElementById('file-input').addEventListener('change', (e) => {
