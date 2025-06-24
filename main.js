@@ -75,10 +75,28 @@ const menuTemplate = [
             { 
                 label: 'Load Graph...', 
                 accelerator: 'CmdOrCtrl+O',
-                click: () => {
+                click: async () => {
+                    const { dialog } = require('electron');
                     const win = BrowserWindow.getFocusedWindow();
                     if (win) {
-                        win.webContents.send('menu-load-graph');
+                        const result = await dialog.showOpenDialog(win, {
+                            properties: ['openFile'],
+                            filters: [
+                                { name: 'JSON Files', extensions: ['json'] },
+                                { name: 'All Files', extensions: ['*'] }
+                            ]
+                        });
+                        
+                        if (!result.canceled && result.filePaths.length > 0) {
+                            const filePath = result.filePaths[0];
+                            const fs = require('fs');
+                            try {
+                                const fileContent = fs.readFileSync(filePath, 'utf8');
+                                win.webContents.send('menu-load-graph-content', fileContent, path.basename(filePath));
+                            } catch (error) {
+                                console.error('Error reading file:', error);
+                            }
+                        }
                     }
                 }
             },

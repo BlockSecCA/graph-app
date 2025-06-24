@@ -486,15 +486,14 @@
                         }
                     });
                     
-                    ipcRenderer.on('menu-load-graph', () => {
-                        console.log('Menu: Load Graph clicked');
-                        // Use setTimeout to ensure user gesture context
-                        setTimeout(() => {
-                            const fileInput = document.getElementById('file-input');
-                            if (fileInput) {
-                                fileInput.click();
-                            }
-                        }, 0);
+                    ipcRenderer.on('menu-load-graph-content', (event, fileContent, fileName) => {
+                        console.log('Menu: Load Graph content received');
+                        try {
+                            window.graphApp.importGraph(fileContent);
+                            showStatus(`Graph loaded from "${fileName}"`, 'success');
+                        } catch (error) {
+                            showStatus(`Failed to load graph: ${error.message}`, 'error');
+                        }
                     });
                     
                     ipcRenderer.on('menu-save-graph', () => {
@@ -844,116 +843,77 @@
         }
 
         async function initializeAnalysisSystem() {
-            console.log('Initializing Pyodide for Python analysis...');
+            console.log('Initializing analysis system (basic mode)...');
             
-            try {
-                // Load Pyodide and networkx
-                window.pyodideInstance = await loadPyodide();
-                await window.pyodideInstance.loadPackage('networkx');
-                
-                // Load the Python analysis code (try multiple paths)
-                let response;
-                const possiblePaths = ['../py/test_pyodide.py', './py/test_pyodide.py', 'py/test_pyodide.py'];
-                
-                for (const path of possiblePaths) {
-                    try {
-                        response = await fetch(path);
-                        if (response.ok) {
-                            console.log(`Successfully loaded Python code from: ${path}`);
-                            break;
-                        }
-                    } catch (error) {
-                        console.log(`Failed to fetch from ${path}:`, error.message);
+            // For now, use basic JavaScript analysis instead of Python
+            // This avoids the Pyodide loading issues
+            window.graphApp.state.availablePlugins.set('causal-paths', {
+                analyze: async (graph, params) => {
+                    if (graph.nodes.length === 0) {
+                        throw new Error('No nodes in graph to analyze');
                     }
-                }
-                
-                if (!response || !response.ok) {
-                    throw new Error('Failed to load Python analysis code from any path');
-                }
-                
-                window.analysisCode = await response.text();
-                
-                console.log('Pyodide and analysis code loaded successfully');
-                
-                // Real Python analysis plugin
-                window.graphApp.state.availablePlugins.set('causal-paths', {
-                    analyze: async (graph, params) => {
-                        if (!window.pyodideInstance || !window.analysisCode) {
-                            throw new Error('Python analysis system not initialized');
-                        }
+                    
+                    // Basic JavaScript analysis
+                    const influenceScores = {};
+                    const positivePaths = [];
+                    const negativePaths = [];
+                    
+                    // Calculate basic influence scores (sum of incoming edge weights)
+                    graph.nodes.forEach(node => {
+                        let score = 0;
+                        graph.edges.forEach(edge => {
+                            if (edge.target === node.id) {
+                                const weight = edge.type === '-' ? -edge.weight : edge.weight;
+                                score += weight;
+                            }
+                        });
+                        influenceScores[node.label || node.id] = score;
+                    });
+                    
+                    // Find simple paths (just direct connections for now)
+                    if (graph.nodes.length >= 2) {
+                        const firstNode = graph.nodes[0];
+                        const lastNode = graph.nodes[graph.nodes.length - 1];
                         
-                        if (graph.nodes.length === 0) {
-                            throw new Error('No nodes in graph to analyze');
-                        }
+                        // Find direct connection
+                        const directEdge = graph.edges.find(e => 
+                            e.source === firstNode.id && e.target === lastNode.id
+                        );
                         
-                        try {
-                            // Set graph data in Pyodide globals
-                            const graphData = {
-                                nodes: graph.nodes,
-                                edges: graph.edges
-                            };
-                            
-                            window.pyodideInstance.globals.set("GraphData", graphData);
-                            
-                            // Run the Python analysis
-                            const result = await window.pyodideInstance.runPythonAsync(window.analysisCode);
-                            
-                            // Convert result to JavaScript object
-                            const jsResult = result.toJs ? result.toJs() : result;
-                            
-                            return {
-                                metadata: {
-                                    analysis_id: 'causal-paths',
-                                    analysis_name: 'Causal Path Analysis',
-                                    timestamp: new Date().toISOString(),
-                                    parameters_used: params,
-                                    graph_stats: {
-                                        nodes: graph.nodes.length,
-                                        edges: graph.edges.length
-                                    }
-                                },
-                                results: {
-                                    primary: {
-                                        influence_scores: jsResult.influence_scores || {},
-                                        positive_paths: jsResult.positive_paths || [],
-                                        negative_paths: jsResult.negative_paths || []
-                                    }
-                                },
-                                summary: formatAnalysisSummary(jsResult)
-                            };
-                            
-                        } catch (error) {
-                            console.error('Python analysis error:', error);
-                            throw new Error(`Analysis failed: ${error.message}`);
+                        if (directEdge) {
+                            const path = [firstNode.label || firstNode.id, lastNode.label || lastNode.id];
+                            if (directEdge.type === '+') {
+                                positivePaths.push(path);
+                            } else {
+                                negativePaths.push(path);
+                            }
                         }
                     }
-                });
-                
-            } catch (error) {
-                console.error('Failed to initialize analysis system:', error);
-                
-                // Fallback to basic analysis if Python fails
-                window.graphApp.state.availablePlugins.set('causal-paths', {
-                    analyze: async (graph, params) => {
-                        return {
-                            metadata: {
-                                analysis_id: 'causal-paths-fallback',
-                                timestamp: new Date().toISOString()
-                            },
-                            results: {
-                                primary: {
-                                    error: 'Python analysis unavailable',
-                                    basic_stats: {
-                                        node_count: graph.nodes.length,
-                                        edge_count: graph.edges.length
-                                    }
-                                }
-                            },
-                            summary: `Basic analysis: ${graph.nodes.length} nodes, ${graph.edges.length} edges. Python analysis unavailable.`
-                        };
-                    }
-                });
-            }
+                    
+                    return {
+                        metadata: {
+                            analysis_id: 'causal-paths-basic',
+                            analysis_name: 'Basic Causal Analysis',
+                            timestamp: new Date().toISOString(),
+                            parameters_used: params,
+                            graph_stats: {
+                                nodes: graph.nodes.length,
+                                edges: graph.edges.length
+                            }
+                        },
+                        results: {
+                            primary: {
+                                influence_scores: influenceScores,
+                                positive_paths: positivePaths,
+                                negative_paths: negativePaths
+                            }
+                        },
+                        summary: `Basic analysis complete. Found ${Object.keys(influenceScores).length} nodes with influence scores, ${positivePaths.length} positive paths, ${negativePaths.length} negative paths.`
+                    };
+                }
+            });
+            
+            console.log('Basic analysis system initialized');
         }
         
         function formatAnalysisSummary(results) {
