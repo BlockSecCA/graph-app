@@ -136,19 +136,37 @@
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
+            min-height: 60px; /* Prevent collapse */
         }
 
         .control-group {
             display: flex;
             gap: 8px;
             align-items: center;
+            flex-shrink: 1; /* Allow shrinking */
+            min-width: 0; /* Allow content to shrink below natural size */
         }
 
         .control-group input {
-            padding: 6px 10px;
+            padding: 6px 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
+            min-width: 80px; /* Minimum readable width */
+            max-width: 120px; /* Prevent too wide */
+            flex: 1; /* Take available space */
+        }
+
+        .control-group input[type="number"] {
+            max-width: 80px; /* Smaller for numbers */
+        }
+
+        .control-group select {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            max-width: 120px;
         }
 
         .control-group button {
@@ -369,6 +387,91 @@
             .toolbar-section {
                 margin-right: 15px;
                 padding-right: 15px;
+            }
+        }
+
+        /* Narrow editor pane adaptations */
+        @media (max-width: 1200px) {
+            .control-group input {
+                min-width: 60px;
+                max-width: 100px;
+            }
+        }
+
+        /* Dynamic responsive classes based on pane width */
+        .editor-controls.narrow {
+            padding: 12px 15px;
+            gap: 8px;
+        }
+        
+        .editor-controls.narrow .control-group {
+            gap: 6px;
+        }
+        
+        .editor-controls.narrow .control-group input {
+            min-width: 60px;
+            max-width: 90px;
+            padding: 5px 7px;
+            font-size: 13px;
+        }
+        
+        .editor-controls.narrow .control-group button {
+            padding: 5px 10px;
+            font-size: 13px;
+        }
+        
+        .editor-controls.very-narrow {
+            padding: 10px 12px;
+            gap: 6px;
+        }
+        
+        .editor-controls.very-narrow .control-group {
+            gap: 4px;
+            flex-direction: column;
+            align-items: stretch;
+            margin-bottom: 5px;
+        }
+        
+        .editor-controls.very-narrow .control-group input {
+            min-width: 40px;
+            max-width: none;
+            width: 100%;
+            padding: 4px 6px;
+            font-size: 12px;
+        }
+        
+        .editor-controls.very-narrow .control-group button {
+            padding: 4px 8px;
+            font-size: 12px;
+            width: 100%;
+        }
+        
+        .editor-controls.very-narrow .control-group select {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        /* Very narrow editor pane (fallback for media queries) */
+        @media (max-width: 900px) {
+            .editor-controls {
+                padding: 10px 15px;
+                gap: 8px;
+            }
+            
+            .control-group {
+                gap: 6px;
+            }
+            
+            .control-group input {
+                min-width: 50px;
+                max-width: 80px;
+                padding: 4px 6px;
+                font-size: 13px;
+            }
+            
+            .control-group button {
+                padding: 4px 8px;
+                font-size: 13px;
             }
         }
 
@@ -619,6 +722,22 @@
             
             let isResizing = false;
             
+            // Set up responsive control sizing based on pane width
+            function updateControlsForWidth() {
+                const editorWidth = editorPane.getBoundingClientRect().width;
+                const controls = document.querySelector('.editor-controls');
+                
+                // Remove existing responsive classes
+                controls.classList.remove('narrow', 'very-narrow');
+                
+                // Add appropriate class based on width
+                if (editorWidth < 500) {
+                    controls.classList.add('very-narrow');
+                } else if (editorWidth < 650) {
+                    controls.classList.add('narrow');
+                }
+            }
+            
             splitter.addEventListener('mousedown', (e) => {
                 isResizing = true;
                 document.body.style.cursor = 'col-resize';
@@ -643,7 +762,7 @@
                     editorPane.style.flex = `0 0 ${leftPercent}%`;
                     analysisPane.style.flex = `0 0 ${rightPercent}%`;
                     
-                    // Trigger network resize with proper dimensions
+                    // Trigger network resize and control adaptation
                     setTimeout(() => {
                         const editorNetwork = window.graphApp.networks.editor;
                         const analysisNetwork = window.graphApp.networks.analysis;
@@ -657,6 +776,9 @@
                         if (analysisNetwork) {
                             analysisNetwork.fit();
                         }
+                        
+                        // Update controls responsiveness
+                        updateControlsForWidth();
                     }, 50);
                 }
             }
@@ -667,6 +789,9 @@
                 document.removeEventListener('mousemove', handleResize);
                 document.removeEventListener('mouseup', stopResize);
             }
+            
+            // Initial setup of responsive controls
+            setTimeout(updateControlsForWidth, 100);
         }
 
         function initializeEventHandlers() {
