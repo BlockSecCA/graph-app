@@ -648,7 +648,14 @@
                 },
                 physics: {
                     enabled: true,
-                    stabilization: { iterations: 100 }
+                    stabilization: { iterations: 100 },
+                    solver: 'forceAtlas2Based',
+                    forceAtlas2Based: {
+                        gravitationalConstant: -26,
+                        centralGravity: 0.005,
+                        springLength: 230,
+                        springConstant: 0.18
+                    }
                 },
                 interaction: {
                     hover: true,
@@ -693,7 +700,9 @@
                 id: node.id,
                 label: node.label || node.id,
                 group: node.group || 'default',
-                title: `${node.label || node.id}\nType: ${node.type || 'N/A'}\nGroup: ${node.group || 'default'}`
+                title: `${node.label || node.id}\nType: ${node.type || 'N/A'}\nGroup: ${node.group || 'default'}`,
+                x: node.x,
+                y: node.y
             })));
 
             const edges = new vis.DataSet(graphData.edges.map(edge => ({
@@ -712,6 +721,19 @@
         function updateStats(graphData) {
             document.getElementById('node-count').textContent = graphData.nodes.length;
             document.getElementById('edge-count').textContent = graphData.edges.length;
+            
+            // Debug: Log node positions
+            if (graphData.nodes.length > 0) {
+                console.log('Current nodes:', graphData.nodes);
+                
+                // Auto-fit if we have nodes but they might be invisible
+                setTimeout(() => {
+                    const network = window.graphApp.networks.editor;
+                    if (network) {
+                        network.fit();
+                    }
+                }, 200);
+            }
         }
 
         function setupContextMenus(network) {
@@ -727,7 +749,8 @@
                 e.stopPropagation();
                 
                 contextPosition = { x: e.clientX, y: e.clientY };
-                const canvasPosition = network.canvasToDOM({ x: e.offsetX, y: e.offsetY });
+                const pointer = network.getPointer({ x: e.offsetX, y: e.offsetY });
+                const canvasPosition = { x: pointer.x, y: pointer.y };
                 
                 // Check what was clicked
                 const nodeId = network.getNodeAt(canvasPosition);
@@ -993,9 +1016,27 @@
                 }
                 
                 try {
-                    window.graphApp.addNode({ id, label: label || id });
+                    // Add node with explicit position if we have canvas position
+                    const nodeData = { 
+                        id, 
+                        label: label || id,
+                        // Add position data if available
+                        x: canvasPosition ? canvasPosition.x : undefined,
+                        y: canvasPosition ? canvasPosition.y : undefined
+                    };
+                    
+                    console.log('Adding node with position:', nodeData);
+                    window.graphApp.addNode(nodeData);
                     showStatus(`Node "${id}" added successfully`, 'success');
                     closeModal();
+                    
+                    // Force network to fit view to show new node
+                    setTimeout(() => {
+                        const network = window.graphApp.networks.editor;
+                        if (network) {
+                            network.fit();
+                        }
+                    }, 100);
                 } catch (error) {
                     showStatus(error.message, 'error');
                 }
