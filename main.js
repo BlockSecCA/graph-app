@@ -20,8 +20,8 @@ function createWindow() {
         icon: __dirname + `/assets/icon.ico`
     });
 
-    // Load the index.html file into the window
-    win.loadFile('index.html');
+    // Load the unified interface
+    win.loadFile('src/unified-interface.html');
 
     // Log to the renderer process console
     win.webContents.on('did-finish-load', () => {

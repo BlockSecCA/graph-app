@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Causal Graph Tool</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://unpkg.com/vis-network@latest/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.3/full/pyodide.js"></script>
+    
+    <!-- Application Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        /* Top Toolbar */
+        .toolbar {
+            height: 60px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .toolbar h1 {
+            font-size: 18px;
+            margin-right: 30px;
+        }
+
+        .toolbar-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toolbar-section:not(:last-child) {
+            margin-right: 30px;
+            padding-right: 30px;
+            border-right: 1px solid #34495e;
+        }
+
+        .toolbar button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .toolbar button:hover {
+            background: #2980b9;
+        }
+
+        .toolbar button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .toolbar select {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #bdc3c7;
+            font-size: 14px;
+        }
+
+        .toolbar input[type="file"] {
+            display: none;
+        }
+
+        .toolbar label {
+            background: #27ae60;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .toolbar label:hover {
+            background: #229954;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            height: calc(100vh - 60px);
+            display: flex;
+        }
+
+        /* Split Pane Container */
+        .split-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Editor Pane */
+        .editor-pane {
+            flex: 1;
+            min-width: 400px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #ddd;
+        }
+
+        .editor-header {
+            padding: 15px 20px;
+            background: #ecf0f1;
+            border-bottom: 1px solid #ddd;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .editor-controls {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .control-group input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .control-group button {
+            padding: 6px 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .control-group button:hover {
+            background: #2980b9;
+        }
+
+        .control-group button.danger {
+            background: #e74c3c;
+        }
+
+        .control-group button.danger:hover {
+            background: #c0392b;
+        }
+
+        /* Graph Container */
+        .graph-container {
+            flex: 1;
+            position: relative;
+            background: white;
+            overflow: hidden;
+        }
+
+        .vis-network {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Resizable Splitter */
+        .splitter {
+            width: 5px;
+            background: #bdc3c7;
+            cursor: col-resize;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .splitter:hover {
+            background: #95a5a6;
+        }
+
+        .splitter::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 3px;
+            height: 30px;
+            background: #7f8c8d;
+            border-radius: 2px;
+        }
+
+        /* Analysis Pane */
+        .analysis-pane {
+            flex: 1;
+            min-width: 400px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .analysis-header {
+            padding: 15px 20px;
+            background: #ecf0f1;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .analysis-header h2 {
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .plugin-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .plugin-selector select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .run-analysis-btn {
+            padding: 8px 16px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .run-analysis-btn:hover {
+            background: #229954;
+        }
+
+        .run-analysis-btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        /* Analysis Results */
+        .analysis-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .analysis-results {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .analysis-results h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .analysis-results pre {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .loading::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 10px 15px;
+            margin: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column;
+            }
+            
+            .splitter {
+                width: 100%;
+                height: 5px;
+                cursor: row-resize;
+            }
+            
+            .editor-pane,
+            .analysis-pane {
+                min-width: unset;
+                min-height: 300px;
+            }
+            
+            .toolbar {
+                flex-wrap: wrap;
+                height: auto;
+                min-height: 60px;
+            }
+            
+            .toolbar-section {
+                margin-right: 15px;
+                padding-right: 15px;
+            }
+        }
+
+        /* Hide elements when not needed */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Toolbar -->
+    <div class="toolbar">
+        <h1>Causal Graph Tool</h1>
+        
+        <div class="toolbar-section">
+            <label for="file-input">Load Graph</label>
+            <input type="file" id="file-input" accept=".json">
+            <button id="save-graph">Save Graph</button>
+            <button id="new-graph">New Graph</button>
+        </div>
+        
+        <div class="toolbar-section">
+            <span>Nodes: <span id="node-count">0</span></span>
+            <span>Edges: <span id="edge-count">0</span></span>
+        </div>
+        
+        <div class="toolbar-section">
+            <button id="toggle-layout">Toggle Layout</button>
+            <button id="fit-graph">Fit to View</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="split-container">
+            <!-- Editor Pane -->
+            <div class="editor-pane">
+                <div class="editor-header">
+                    <h2>Graph Editor</h2>
+                </div>
+                
+                <!-- Editor Controls -->
+                <div class="editor-controls">
+                    <div class="control-group">
+                        <input type="text" id="node-id" placeholder="Node ID" />
+                        <input type="text" id="node-label" placeholder="Node Label" />
+                        <button id="add-node">Add Node</button>
+                        <button id="delete-node" class="danger">Delete Node</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <input type="text" id="edge-source" placeholder="Source ID" />
+                        <input type="text" id="edge-target" placeholder="Target ID" />
+                        <select id="edge-type">
+                            <option value="+">Positive (+)</option>
+                            <option value="-">Negative (-)</option>
+                        </select>
+                        <input type="number" id="edge-weight" placeholder="Weight" step="0.1" min="0" value="1" />
+                        <button id="add-edge">Add Edge</button>
+                        <button id="delete-edge" class="danger">Delete Edge</button>
+                    </div>
+                </div>
+                
+                <!-- Graph Container -->
+                <div class="graph-container" data-container-type="editor">
+                    <div id="editor-network" class="vis-network"></div>
+                </div>
+            </div>
+
+            <!-- Resizable Splitter -->
+            <div class="splitter" id="splitter"></div>
+
+            <!-- Analysis Pane -->
+            <div class="analysis-pane">
+                <div class="analysis-header">
+                    <h2>Analysis</h2>
+                    <div class="plugin-selector">
+                        <select id="plugin-select">
+                            <option value="causal-paths">Causal Path Analysis</option>
+                            <option value="centrality" disabled>Centrality (Coming Soon)</option>
+                            <option value="community" disabled>Community Detection (Coming Soon)</option>
+                        </select>
+                        <button id="run-analysis" class="run-analysis-btn">Analyze</button>
+                    </div>
+                </div>
+                
+                <!-- Analysis Content -->
+                <div class="analysis-content">
+                    <div id="analysis-placeholder" class="analysis-results">
+                        <h3>Ready to Analyze</h3>
+                        <p>Create a graph in the editor and click "Analyze" to see results.</p>
+                        <p>Analysis will run automatically as you make changes to the graph.</p>
+                    </div>
+                    
+                    <div id="analysis-loading" class="loading hidden">
+                        Analyzing graph...
+                    </div>
+                    
+                    <div id="analysis-results" class="analysis-results hidden">
+                        <h3>Analysis Results</h3>
+                        <div id="results-content"></div>
+                    </div>
+                    
+                    <!-- Graph Visualization for Analysis -->
+                    <div id="analysis-visualization" class="graph-container hidden" data-container-type="analysis" style="height: 300px; margin-top: 20px;">
+                        <div id="analysis-network" class="vis-network"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Messages Container -->
+    <div id="status-container"></div>
+
+    <!-- Include Shared State -->
+    <script src="shared-state.js"></script>
+
+    <!-- Main Application Script -->
+    <script>
+        // Initialize the unified interface
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeUnifiedInterface();
+        });
+
+        async function initializeUnifiedInterface() {
+            console.log('Initializing Causal Graph Tool...');
+            
+            // Initialize shared state
+            const app = window.graphApp;
+            
+            // Initialize networks
+            initializeEditorNetwork();
+            initializeSplitter();
+            initializeEventHandlers();
+            
+            // Initialize analysis system (placeholder for now)
+            await initializeAnalysisSystem();
+            
+            console.log('Application initialized successfully');
+        }
+
+        function initializeEditorNetwork() {
+            const container = document.getElementById('editor-network');
+            
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    size: 16,
+                    font: { color: '#2c3e50', size: 14 },
+                    borderWidth: 2,
+                    shadow: true
+                },
+                edges: {
+                    arrows: { to: { enabled: true, scaleFactor: 1.2 } },
+                    smooth: { type: 'curvedCW', roundness: 0.1 },
+                    font: { color: '#34495e', size: 12, align: 'middle' },
+                    shadow: true
+                },
+                physics: {
+                    enabled: true,
+                    stabilization: { iterations: 100 }
+                },
+                interaction: {
+                    hover: true,
+                    selectConnectedEdges: false
+                }
+            };
+
+            const editorNetwork = new vis.Network(container, { nodes: new vis.DataSet(), edges: new vis.DataSet() }, options);
+            
+            // Register with shared state
+            window.graphApp.registerNetwork('editor', editorNetwork);
+            
+            // Listen for graph updates
+            window.graphApp.addEventListener('graphUpdated', (e) => {
+                updateNetworkData(editorNetwork, e.detail.graph);
+                updateStats(e.detail.graph);
+            });
+            
+            // Handle network selection for easier editing
+            editorNetwork.on('selectNode', function(params) {
+                if (params.nodes.length > 0) {
+                    document.getElementById('node-id').value = params.nodes[0];
+                }
+            });
+            
+            editorNetwork.on('selectEdge', function(params) {
+                if (params.edges.length > 0) {
+                    const edge = window.graphApp.state.currentGraph.edges.find(e => 
+                        `${e.source}-${e.target}` === params.edges[0] || 
+                        `${e.target}-${e.source}` === params.edges[0]
+                    );
+                    if (edge) {
+                        document.getElementById('edge-source').value = edge.source;
+                        document.getElementById('edge-target').value = edge.target;
+                    }
+                }
+            });
+        }
+
+        function updateNetworkData(network, graphData) {
+            const nodes = new vis.DataSet(graphData.nodes.map(node => ({
+                id: node.id,
+                label: node.label || node.id,
+                group: node.group || 'default',
+                title: `${node.label || node.id}\nType: ${node.type || 'N/A'}\nGroup: ${node.group || 'default'}`
+            })));
+
+            const edges = new vis.DataSet(graphData.edges.map(edge => ({
+                id: `${edge.source}-${edge.target}`,
+                from: edge.source,
+                to: edge.target,
+                label: edge.type + (edge.weight !== 1 ? ` (${edge.weight})` : ''),
+                color: edge.type === '+' ? '#27ae60' : '#e74c3c',
+                width: Math.abs(edge.weight) * 2,
+                title: `${edge.source} → ${edge.target}\nType: ${edge.type}\nWeight: ${edge.weight}`
+            })));
+
+            network.setData({ nodes, edges });
+        }
+
+        function updateStats(graphData) {
+            document.getElementById('node-count').textContent = graphData.nodes.length;
+            document.getElementById('edge-count').textContent = graphData.edges.length;
+        }
+
+        function initializeSplitter() {
+            const splitter = document.getElementById('splitter');
+            const container = document.querySelector('.split-container');
+            const editorPane = document.querySelector('.editor-pane');
+            const analysisPane = document.querySelector('.analysis-pane');
+            
+            let isResizing = false;
+            
+            splitter.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                document.body.style.cursor = 'col-resize';
+                document.addEventListener('mousemove', handleResize);
+                document.addEventListener('mouseup', stopResize);
+                e.preventDefault();
+            });
+            
+            function handleResize(e) {
+                if (!isResizing) return;
+                
+                const containerRect = container.getBoundingClientRect();
+                const x = e.clientX - containerRect.left;
+                const containerWidth = containerRect.width;
+                
+                // Calculate percentages
+                const leftPercent = (x / containerWidth) * 100;
+                const rightPercent = 100 - leftPercent;
+                
+                // Enforce minimum widths (30% each)
+                if (leftPercent >= 30 && rightPercent >= 30) {
+                    editorPane.style.flex = `0 0 ${leftPercent}%`;
+                    analysisPane.style.flex = `0 0 ${rightPercent}%`;
+                    
+                    // Trigger network resize
+                    setTimeout(() => {
+                        const editorNetwork = window.graphApp.networks.editor;
+                        const analysisNetwork = window.graphApp.networks.analysis;
+                        
+                        if (editorNetwork) {
+                            editorNetwork.fit();
+                        }
+                        if (analysisNetwork) {
+                            analysisNetwork.fit();
+                        }
+                    }, 10);
+                }
+            }
+            
+            function stopResize() {
+                isResizing = false;
+                document.body.style.cursor = 'default';
+                document.removeEventListener('mousemove', handleResize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+        }
+
+        function initializeEventHandlers() {
+            // Node operations
+            document.getElementById('add-node').addEventListener('click', () => {
+                const id = document.getElementById('node-id').value.trim();
+                const label = document.getElementById('node-label').value.trim();
+                
+                if (!id) {
+                    showStatus('Please enter a node ID', 'error');
+                    return;
+                }
+                
+                try {
+                    window.graphApp.addNode({ id, label: label || id });
+                    document.getElementById('node-id').value = '';
+                    document.getElementById('node-label').value = '';
+                    showStatus(`Node "${id}" added successfully`, 'success');
+                } catch (error) {
+                    showStatus(error.message, 'error');
+                }
+            });
+
+            document.getElementById('delete-node').addEventListener('click', () => {
+                const id = document.getElementById('node-id').value.trim();
+                
+                if (!id) {
+                    showStatus('Please enter a node ID to delete', 'error');
+                    return;
+                }
+                
+                try {
+                    window.graphApp.deleteNode(id);
+                    document.getElementById('node-id').value = '';
+                    document.getElementById('node-label').value = '';
+                    showStatus(`Node "${id}" deleted successfully`, 'success');
+                } catch (error) {
+                    showStatus(error.message, 'error');
+                }
+            });
+
+            // Edge operations
+            document.getElementById('add-edge').addEventListener('click', () => {
+                const source = document.getElementById('edge-source').value.trim();
+                const target = document.getElementById('edge-target').value.trim();
+                const type = document.getElementById('edge-type').value;
+                const weight = parseFloat(document.getElementById('edge-weight').value) || 1;
+                
+                if (!source || !target) {
+                    showStatus('Please enter both source and target IDs', 'error');
+                    return;
+                }
+                
+                try {
+                    window.graphApp.addEdge({ source, target, type, weight });
+                    document.getElementById('edge-source').value = '';
+                    document.getElementById('edge-target').value = '';
+                    document.getElementById('edge-weight').value = '1';
+                    showStatus(`Edge "${source} → ${target}" added successfully`, 'success');
+                } catch (error) {
+                    showStatus(error.message, 'error');
+                }
+            });
+
+            document.getElementById('delete-edge').addEventListener('click', () => {
+                const source = document.getElementById('edge-source').value.trim();
+                const target = document.getElementById('edge-target').value.trim();
+                
+                if (!source || !target) {
+                    showStatus('Please enter both source and target IDs to delete edge', 'error');
+                    return;
+                }
+                
+                try {
+                    window.graphApp.deleteEdge(source, target);
+                    document.getElementById('edge-source').value = '';
+                    document.getElementById('edge-target').value = '';
+                    showStatus(`Edge "${source} → ${target}" deleted successfully`, 'success');
+                } catch (error) {
+                    showStatus(error.message, 'error');
+                }
+            });
+
+            // File operations
+            document.getElementById('file-input').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        window.graphApp.importGraph(event.target.result);
+                        showStatus(`Graph loaded from "${file.name}"`, 'success');
+                    } catch (error) {
+                        showStatus(`Failed to load graph: ${error.message}`, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            document.getElementById('save-graph').addEventListener('click', () => {
+                try {
+                    const jsonData = window.graphApp.exportGraph();
+                    const blob = new Blob([jsonData], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'graph.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showStatus('Graph saved successfully', 'success');
+                } catch (error) {
+                    showStatus(`Failed to save graph: ${error.message}`, 'error');
+                }
+            });
+
+            document.getElementById('new-graph').addEventListener('click', () => {
+                if (confirm('Create a new graph? This will clear the current graph.')) {
+                    window.graphApp.updateGraph({ nodes: [], edges: [] });
+                    showStatus('New graph created', 'info');
+                }
+            });
+
+            // Graph operations
+            document.getElementById('fit-graph').addEventListener('click', () => {
+                const network = window.graphApp.networks.editor;
+                if (network) {
+                    network.fit();
+                }
+            });
+
+            // Analysis operations
+            document.getElementById('run-analysis').addEventListener('click', () => {
+                window.graphApp.triggerAnalysis();
+            });
+
+            // Listen for analysis events
+            window.graphApp.addEventListener('analysisStarted', () => {
+                document.getElementById('analysis-loading').classList.remove('hidden');
+                document.getElementById('analysis-results').classList.add('hidden');
+                document.getElementById('run-analysis').disabled = true;
+            });
+
+            window.graphApp.addEventListener('analysisCompleted', (e) => {
+                document.getElementById('analysis-loading').classList.add('hidden');
+                document.getElementById('analysis-results').classList.remove('hidden');
+                document.getElementById('run-analysis').disabled = false;
+                
+                displayAnalysisResults(e.detail.results);
+            });
+
+            window.graphApp.addEventListener('analysisError', (e) => {
+                document.getElementById('analysis-loading').classList.add('hidden');
+                document.getElementById('run-analysis').disabled = false;
+                showStatus(`Analysis failed: ${e.detail.error}`, 'error');
+            });
+        }
+
+        async function initializeAnalysisSystem() {
+            // Placeholder for now - will implement plugin system
+            console.log('Analysis system initialized (placeholder)');
+            
+            // Mock plugin for testing
+            window.graphApp.state.availablePlugins.set('causal-paths', {
+                analyze: async (graph, params) => {
+                    // Simulate analysis delay
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    return {
+                        metadata: {
+                            analysis_id: 'causal-paths',
+                            timestamp: new Date().toISOString()
+                        },
+                        results: {
+                            primary: {
+                                node_count: graph.nodes.length,
+                                edge_count: graph.edges.length,
+                                summary: `Graph with ${graph.nodes.length} nodes and ${graph.edges.length} edges`
+                            }
+                        },
+                        summary: `Analyzed graph structure. Found ${graph.nodes.length} nodes and ${graph.edges.length} edges.`
+                    };
+                }
+            });
+        }
+
+        function displayAnalysisResults(results) {
+            const container = document.getElementById('results-content');
+            container.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>Summary:</strong> ${results.summary}
+                </div>
+                <div>
+                    <strong>Results:</strong>
+                    <pre>${JSON.stringify(results.results, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.textContent = message;
+            
+            container.appendChild(statusDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (statusDiv.parentNode) {
+                    statusDiv.parentNode.removeChild(statusDiv);
+                }
+            }, 5000);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const editorNetwork = window.graphApp.networks.editor;
+            const analysisNetwork = window.graphApp.networks.analysis;
+            
+            if (editorNetwork) {
+                editorNetwork.fit();
+            }
+            if (analysisNetwork) {
+                analysisNetwork.fit();
+            }
+        });
+    </script>
+</body>
+</html>
