@@ -705,14 +705,9 @@
         function updateNetworkData(network, graphData) {
             console.log('Updating network with graph data:', graphData);
             
-            // Get existing data sets and update them
-            const currentData = network.body.data;
-            const nodes = currentData.nodes;
-            const edges = currentData.edges;
-            
-            // Clear existing data
-            nodes.clear();
-            edges.clear();
+            // Always create fresh DataSets (identical to app startup behavior)
+            const nodes = new vis.DataSet();
+            const edges = new vis.DataSet();
             
             // Add new nodes
             const nodeData = graphData.nodes.map((node, index) => {
@@ -740,13 +735,17 @@
                 title: `${edge.source} → ${edge.target}\nType: ${edge.type}\nWeight: ${edge.weight}`
             }));
             
-            // Add data to existing datasets (preserves event handlers)
+            // Add data to fresh datasets
             if (nodeData.length > 0) {
                 nodes.add(nodeData);
             }
             if (edgeData.length > 0) {
                 edges.add(edgeData);
             }
+            
+            // Update network with fresh DataSets (identical to app startup)
+            network.setData({ nodes, edges });
+            console.log('Network updated with fresh DataSets');
             
             // Ensure nodes are visible by fitting the view
             if (graphData.nodes.length > 0) {
