@@ -562,6 +562,7 @@
     <script>
         // Initialize the unified interface
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 DOM loaded, node integration available:', typeof window.require === 'function');
             initializeUnifiedInterface();
             
             // Set up IPC listeners for menu commands
@@ -1481,9 +1482,21 @@ print(f"NetworkX works: {G.number_of_nodes()} nodes")
                 window.pyodide = await pyodideReadyPromise;
                 console.log('🔬 Analysis system: Pyodide test passed, continuing with plugins...');
                 
-                // Use simple plugin directory for testing
-                const pluginsDirectory = '../py/plugins';
-                console.log('🔬 Using plugins directory:', pluginsDirectory);
+                // Get plugins directory from main process
+                let pluginsDirectory;
+                try {
+                    console.log('🔬 Checking if require is available:', typeof window.require);
+                    if (typeof window.require === 'function') {
+                        pluginsDirectory = await window.require('electron').ipcRenderer.invoke('get-plugins-directory');
+                        console.log('🔬 Using user plugins directory:', pluginsDirectory);
+                    } else {
+                        throw new Error('require function not available - nodeIntegration might be disabled');
+                    }
+                } catch (e) {
+                    console.warn('Could not get user plugins directory, falling back to built-in:', e);
+                    pluginsDirectory = '../py/plugins';
+                    console.log('🔬 Using fallback plugins directory:', pluginsDirectory);
+                }
                 
                 // Load plugin loader module
                 console.log('🔬 Loading plugin loader...');
@@ -1494,11 +1507,19 @@ print(f"NetworkX works: {G.number_of_nodes()} nodes")
                 
                 // Set plugins directory in Python
                 console.log('🔬 Initializing plugin loader...');
+                console.log('🔬 Plugin directory path:', pluginsDirectory);
+                
                 window.pyodide.runPython(`
 # The plugin_loader code is already executed, so we can access its classes directly
 import js
-_plugin_loader = PluginLoader("${pluginsDirectory.replace(/\\/g, '/')}")
-print(f"Plugin loader initialized with directory: ${pluginsDirectory.replace(/\\/g, '/')}")
+import os
+plugin_dir = "${pluginsDirectory.replace(/\\/g, '/')}"
+print(f"Plugin loader initializing with directory: {plugin_dir}")
+print(f"Directory exists: {os.path.exists(plugin_dir)}")
+if os.path.exists(plugin_dir):
+    print(f"Directory contents: {os.listdir(plugin_dir)}")
+_plugin_loader = PluginLoader(plugin_dir)
+print(f"Plugin loader initialized successfully")
                 `);
                 
                 // Discover plugins
@@ -1508,6 +1529,8 @@ print(f"Plugin loader initialized with directory: ${pluginsDirectory.replace(/\\
                 
             } catch (error) {
                 console.error('Failed to initialize plugin system, falling back to basic mode:', error);
+                console.error('Full error details:', error.stack || error);
+                showStatus('Plugin system failed to load, using fallback analysis', 'warning');
                 await initializeFallbackAnalysis();
             }
         }
@@ -1549,6 +1572,7 @@ print(f"Plugin loader initialized with directory: ${pluginsDirectory.replace(/\\
                 
             } catch (error) {
                 console.error('Plugin discovery failed:', error);
+                console.error('Full error details:', error.stack || error);
                 throw error;
             }
         }
