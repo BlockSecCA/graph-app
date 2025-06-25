@@ -788,44 +788,13 @@
                 console.log('Network stabilized, context menus are ready');
             });
             
+            // Disable default browser context menu
             container.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Context menu triggered at:', e.clientX, e.clientY);
-                
-                contextPosition = { x: e.clientX, y: e.clientY };
-                
-                // Get canvas position relative to the container
-                const containerRect = container.getBoundingClientRect();
-                const canvasPosition = { 
-                    x: e.clientX - containerRect.left, 
-                    y: e.clientY - containerRect.top 
-                };
-                console.log('Canvas position:', canvasPosition);
-                
-                // Use vis-network API to get the clicked position
-                const domPointer = { x: e.offsetX, y: e.offsetY };
-                // Convert DOM coordinates to canvas coordinates for node placement
-                const networkPointer = network.DOMtoCanvas(domPointer);
-                console.log('DOM pointer:', domPointer, 'Network pointer:', networkPointer);
-                
-                // Check what was clicked using vis-network methods
-                const nodeId = network.getNodeAt(domPointer);
-                const edgeId = network.getEdgeAt(domPointer);
-                console.log('Clicked on:', { nodeId, edgeId, domPointer, networkPointer });
-                
-                if (nodeId) {
-                    showNodeContextMenu(e.clientX, e.clientY, nodeId);
-                } else if (edgeId) {
-                    showEdgeContextMenu(e.clientX, e.clientY, edgeId);
-                } else {
-                    // Use simple coordinates instead of problematic network conversion
-                    const simpleCoords = { x: 0, y: 0 }; // Place at center
-                    showCanvasContextMenu(e.clientX, e.clientY, simpleCoords);
-                }
             });
             
-            // Also try adding the event listener to the canvas element directly
+            // Use vis-network's oncontext event exclusively for better reliability
             network.on('oncontext', (params) => {
                 console.log('vis-network oncontext event:', params);
                 if (params.event && params.event.preventDefault) {
@@ -834,11 +803,16 @@
                     const canvasPosition = { x: params.pointer.canvas.x, y: params.pointer.canvas.y };
                     const domPosition = { x: params.pointer.DOM.x, y: params.pointer.DOM.y };
                     
+                    console.log('Context menu triggered at DOM:', domPosition, 'Canvas:', canvasPosition);
+                    
                     if (params.nodes && params.nodes.length > 0) {
+                        console.log('Right-clicked on node:', params.nodes[0]);
                         showNodeContextMenu(domPosition.x, domPosition.y, params.nodes[0]);
                     } else if (params.edges && params.edges.length > 0) {
+                        console.log('Right-clicked on edge:', params.edges[0]);
                         showEdgeContextMenu(domPosition.x, domPosition.y, params.edges[0]);
                     } else {
+                        console.log('Right-clicked on canvas, showing add node menu');
                         showCanvasContextMenu(domPosition.x, domPosition.y, canvasPosition);
                     }
                 }
