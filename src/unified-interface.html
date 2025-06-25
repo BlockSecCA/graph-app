@@ -701,7 +701,18 @@
 
         function updateNetworkData(network, graphData) {
             console.log('Updating network with graph data:', graphData);
-            const nodes = new vis.DataSet(graphData.nodes.map((node, index) => {
+            
+            // Get existing data sets or create new ones if they don't exist
+            const currentData = network.body.data;
+            const nodes = currentData.nodes;
+            const edges = currentData.edges;
+            
+            // Clear existing data
+            nodes.clear();
+            edges.clear();
+            
+            // Add new nodes
+            const nodeData = graphData.nodes.map((node, index) => {
                 const nodeData = {
                     id: node.id,
                     label: node.label || node.id,
@@ -713,9 +724,10 @@
                 };
                 console.log('Creating node for network:', nodeData);
                 return nodeData;
-            }));
-
-            const edges = new vis.DataSet(graphData.edges.map(edge => ({
+            });
+            
+            // Add new edges
+            const edgeData = graphData.edges.map(edge => ({
                 id: `${edge.source}-${edge.target}`,
                 from: edge.source,
                 to: edge.target,
@@ -723,9 +735,15 @@
                 color: edge.type === '+' ? '#27ae60' : '#e74c3c',
                 width: Math.abs(edge.weight) * 2,
                 title: `${edge.source} → ${edge.target}\nType: ${edge.type}\nWeight: ${edge.weight}`
-            })));
-
-            network.setData({ nodes, edges });
+            }));
+            
+            // Add data to existing datasets (preserves event handlers)
+            if (nodeData.length > 0) {
+                nodes.add(nodeData);
+            }
+            if (edgeData.length > 0) {
+                edges.add(edgeData);
+            }
             
             // Ensure nodes are visible by fitting the view
             if (graphData.nodes.length > 0) {
