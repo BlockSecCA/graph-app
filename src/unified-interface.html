@@ -818,9 +818,12 @@
                 }
             });
             
-            // Close context menu on click elsewhere
-            document.addEventListener('click', () => {
-                closeContextMenu();
+            // Close context menu on click elsewhere (but not on modal dialogs)
+            document.addEventListener('click', (e) => {
+                // Don't close context menu if clicking on modal elements
+                if (!e.target.closest('.modal-overlay') && !e.target.closest('.context-menu')) {
+                    closeContextMenu();
+                }
             });
             
             // Close context menu on escape
@@ -1075,6 +1078,11 @@
                 if (e.target === overlay) {
                     closeModal();
                 }
+            });
+            
+            // Prevent immediate closure from global click handlers
+            overlay.addEventListener('click', (e) => {
+                e.stopPropagation();
             });
             
             // Focus the first input with better error handling
