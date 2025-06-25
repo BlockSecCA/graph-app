@@ -853,8 +853,12 @@
                 addNodeItem.innerHTML = '➕ Add Node';
                 addNodeItem.onclick = (e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     closeContextMenu();
-                    showAddNodeDialog(canvasPosition);
+                    // Small delay to ensure event handling is complete
+                    setTimeout(() => {
+                        showAddNodeDialog(canvasPosition);
+                    }, 10);
                 };
                 
                 const separator = document.createElement('div');
@@ -865,8 +869,12 @@
                 addEdgeItem.innerHTML = '🔗 Add Edge';
                 addEdgeItem.onclick = (e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     closeContextMenu();
-                    showAddEdgeDialog();
+                    // Small delay to ensure event handling is complete
+                    setTimeout(() => {
+                        showAddEdgeDialog();
+                    }, 10);
                 };
                 
                 contextMenu.appendChild(addNodeItem);
@@ -1072,17 +1080,15 @@
             
             console.log('Modal dialog created and added to DOM');
             
-            // Prevent overlay from blocking input events to dialog
+            // Handle overlay clicks - close modal if clicking overlay, prevent propagation otherwise
             overlay.addEventListener('click', (e) => {
-                // Only close if clicking the overlay itself, not the dialog
                 if (e.target === overlay) {
+                    // Clicking the overlay itself (not the dialog)
                     closeModal();
+                } else {
+                    // Clicking something inside the dialog - prevent propagation
+                    e.stopPropagation();
                 }
-            });
-            
-            // Prevent immediate closure from global click handlers
-            overlay.addEventListener('click', (e) => {
-                e.stopPropagation();
             });
             
             // Focus the first input with better error handling
