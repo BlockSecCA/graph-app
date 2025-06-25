@@ -1436,6 +1436,23 @@
             });
         }
 
+        // Initialize Pyodide at global scope like the old working version
+        let pyodideReadyPromise = null;
+        
+        async function initializePyodide() {
+            console.log('Loading Pyodide (like old working version)...');
+            const pyodide = await loadPyodide();
+            console.log('Pyodide loaded successfully');
+            
+            await pyodide.loadPackage(['networkx']);
+            console.log('NetworkX loaded successfully');
+            
+            return pyodide;
+        }
+        
+        // Start loading Pyodide immediately
+        pyodideReadyPromise = initializePyodide();
+        
         async function initializeAnalysisSystem() {
             console.log('Initializing analysis system with Python plugins...');
             
@@ -1462,13 +1479,9 @@
                     console.log('Using web mode plugins directory:', pluginsDirectory);
                 }
                 
-                // Load Pyodide
-                window.pyodide = await loadPyodide();
-                console.log('Pyodide loaded successfully');
-                
-                // Install required packages
-                await window.pyodide.loadPackage(['networkx']);
-                console.log('NetworkX installed');
+                // Wait for Pyodide to be ready (loaded at global scope)
+                window.pyodide = await pyodideReadyPromise;
+                console.log('Using pre-loaded Pyodide instance');
                 
                 // Load plugin loader module
                 const pluginLoaderResponse = await fetch('py/plugin_loader.py');
