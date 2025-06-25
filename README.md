@@ -52,7 +52,7 @@ npm start
 
 ## 📁 File Operations
 
-- **File → New Graph** (Ctrl+N): Create a new empty graph
+- **File → New Graph** (F5): Create a new empty graph (reloads application)
 - **File → Load Graph** (Ctrl+O): Load graph from JSON file
 - **File → Save Graph** (Ctrl+S): Save current graph as JSON
 - **View → Fit Graph** (Ctrl+0): Center and fit graph to view
