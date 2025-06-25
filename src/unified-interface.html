@@ -573,13 +573,9 @@
                     ipcRenderer.on('menu-new-graph', () => {
                         console.log('Menu: New Graph clicked');
                         if (confirm('Create a new graph? This will clear the current graph.')) {
-                            // Simple approach: just clear the graph data (back to working version)
-                            console.log('Creating new graph...');
-                            
-                            // Clear the graph through the normal shared state mechanism
-                            window.graphApp.updateGraph({ nodes: [], edges: [] });
-                            
-                            showStatus('New graph created', 'info');
+                            // Simple solution: just reload the page (works perfectly!)
+                            console.log('New Graph: Reloading page for fresh state...');
+                            location.reload();
                         }
                     });
                     
