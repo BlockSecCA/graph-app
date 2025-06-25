@@ -5,10 +5,10 @@ All notable changes to the Causal Graph Tool will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2025-06-25
+## [2.0.1] - 2025-06-25
 
-### 🚀 Plugin System Breakthrough
-Major breakthrough resolving the Pyodide vs Electron security conflict that was preventing the plugin system from working. All 7 plugins now fully functional.
+### 🎉 **PLUGIN SYSTEM COMPLETION**
+**Final breakthrough resolving the Pyodide vs Electron security conflict. All 7 plugins now fully functional. This completes the v2.0.x vision of a professional Python-powered graph analysis tool with working plugin ecosystem.**
 
 ### ✨ Added
 - **Fetch-based Plugin Loading**: Revolutionary HTTP-based plugin system bypassing filesystem isolation
