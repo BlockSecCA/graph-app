@@ -30,25 +30,24 @@ function createWindow() {
     });
 }
 
-// Function to open README.md in a new window
-function openReadme() {
-    const readmePath = path.join(__dirname, 'README.md'); // Path to README.md
-    fs.readFile(readmePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error('Error reading README.md:', err);
-            return;
-        }
-        const readmeWindow = new BrowserWindow({
-            width: 800,
-            height: 600,
-            webPreferences: {
-                nodeIntegration: true,
-            },
-            autoHideMenuBar: true, // Suppress the menu bar
-            title: 'README' // Optional: Set a title for the window
+// Function to open documentation files in external application
+function openDocumentationFile(filename, title) {
+    const filePath = path.join(__dirname, filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+        console.error(`Documentation file not found: ${filename}`);
+        return;
+    }
+    
+    // Open with default application (markdown viewer, text editor, etc.)
+    shell.openExternal(`file://${filePath}`).catch(error => {
+        console.error(`Could not open ${title}:`, error);
+        
+        // Fallback: try opening with system default
+        shell.openPath(filePath).catch(fallbackError => {
+            console.error(`Fallback failed for ${title}:`, fallbackError);
         });
-        // Load the README.md content as plain text
-        readmeWindow.loadURL('data:text/plain;charset=utf-8,' + encodeURIComponent(data)); // Load plain text content
     });
 }
 
@@ -154,17 +153,31 @@ const menuTemplate = [
     {
         label: 'Help',
         submenu: [
-            { label: 'Open README', click: openReadme }, // Call openReadme function
+            { 
+                label: 'Help', 
+                click: () => openDocumentationFile('HELP.md', 'Help')
+            },
             { type: 'separator' },
             { 
-                label: 'Plugin Documentation', 
-                click: () => {
-                    const pluginSpecPath = path.join(__dirname, 'PLUGIN_SPEC.md');
-                    // Use openExternal to open in default text editor instead of shell.openPath
-                    shell.openExternal(`file://${pluginSpecPath}`).catch(error => {
-                        console.log('Could not open plugin documentation:', error);
-                    });
-                }
+                label: 'README', 
+                click: () => openDocumentationFile('README.md', 'README')
+            },
+            { 
+                label: 'Plugin Development Guide', 
+                click: () => openDocumentationFile('PLUGIN.md', 'Plugin Development Guide')
+            },
+            { 
+                label: 'Plugin Specification', 
+                click: () => openDocumentationFile('PLUGIN_SPEC.md', 'Plugin Specification')
+            },
+            { type: 'separator' },
+            { 
+                label: 'Roadmap', 
+                click: () => openDocumentationFile('ROADMAP.md', 'Roadmap')
+            },
+            { 
+                label: 'Changelog', 
+                click: () => openDocumentationFile('CHANGELOG.md', 'Changelog')
             }
         ]
     }
