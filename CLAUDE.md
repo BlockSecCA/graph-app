@@ -3,7 +3,7 @@
 ## Project Overview
 **graph-app** - Professional Electron-based causal graph editor and analysis tool
 - **Repository**: https://github.com/BlockSecCA/graph-app
-- **Version**: 2.1.2 (Graph navigation and interaction fixes)
+- **Version**: 2.1.3 (Restored default vis-network navigation behavior)
 - **Tech Stack**: Electron v25.0.0, Node.js v20.19.2, vis-network, Pyodide, NetworkX
 - **Purpose**: Modern unified interface for graph editing with extensible Python-based analysis
 
@@ -97,7 +97,7 @@ main.js (Electron main process)
 - ✅ **Error Handling**: Comprehensive debugging and graceful fallbacks
 - ✅ **Template System**: Plugin development template remains clean and user-friendly
 
-**Status**: 🎉 **v2.1.2 COMPLETE** - Critical graph navigation and interaction fixes deployed. All core graph interaction features (zoom, pan, drag) restored to full functionality. Visualization preferences system remains robust with all previous enhancements. Addresses GitHub issues #39, #40, and #41 completely.
+**Status**: 🎉 **v2.1.3 COMPLETE** - Graph navigation fully restored by reverting to vis-network defaults. Analysis of old working app revealed that explicit interaction configuration was interfering with built-in zoom/pan behavior. Navigation now works identically to original v1.0 app. Visualization preferences system remains fully functional. Addresses GitHub issues #39, #40, and #41 completely.
 
 ## v2.1.0 New Features ✅
 - ✅ **Visualization Preferences Panel**: Collapsible UI in graph editor header
@@ -121,6 +121,14 @@ main.js (Electron main process)
 - ✅ **Hover Sensitivity**: Reduced unintended graph movement on mouse hover
 - ✅ **Node Dragging**: Maintained individual node positioning capability
 - ✅ **Interaction Optimization**: Enhanced tooltip delays and navigation controls
+
+## v2.1.3 Navigation Restoration ✅
+- ✅ **Root Cause Analysis**: Compared current app with old working v1.0 configuration
+- ✅ **Default Behavior Restored**: Removed explicit interaction config to use vis-network defaults
+- ✅ **Scroll Wheel Zoom**: Now works identically to original working app
+- ✅ **Pan/Drag Navigation**: Canvas panning restored to original functionality  
+- ✅ **Minimal Configuration**: Applied "less is more" principle from old working app
+- ✅ **Compatibility Maintained**: All visualization preferences still functional
 
 ## v2.1 Series Complete ✅
 The visualization enhancement vision is now fully realized:

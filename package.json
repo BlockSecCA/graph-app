@@ -1,6 +1,6 @@
 {
   "name": "causal-graph-tool",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Professional causal graph editor and analysis tool with Python plugin ecosystem",
   "author": "BlockSecCA",
   "license": "MIT",
