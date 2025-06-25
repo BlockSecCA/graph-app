@@ -489,6 +489,12 @@
         </div>
         
         <div class="toolbar-section">
+            <input type="file" id="file-input" accept=".json" style="display: none;">
+            <button onclick="document.getElementById('file-input').click()">📂 Load Graph</button>
+            <button onclick="saveGraphFile()">💾 Save Graph</button>
+        </div>
+        
+        <div class="toolbar-section">
             <span id="mode-indicator">Right-click canvas to add nodes</span>
         </div>
     </div>
@@ -599,6 +605,30 @@
                 }
             } else {
                 console.warn('require not available, menu shortcuts will not work');
+            }
+            
+            // Set up direct file input handler (works without IPC)
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            try {
+                                console.log('File loaded via input:', file.name);
+                                window.graphApp.importGraph(e.target.result);
+                                showStatus(`Graph loaded from "${file.name}"`, 'success');
+                            } catch (error) {
+                                console.error('Error loading file:', error);
+                                showStatus(`Failed to load graph: ${error.message}`, 'error');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                    // Reset input value so same file can be loaded again
+                    event.target.value = '';
+                });
             }
         });
 
@@ -1522,12 +1552,17 @@ print(f"NetworkX works: {G.number_of_nodes()} nodes")
 import js
 import os
 
+# First check what the current working directory is
+print(f"Current working directory: {os.getcwd()}")
+print(f"Directory contents: {os.listdir('.')}")
+
 # Test multiple possible plugin directory paths
 possible_paths = [
     "../py/plugins",
     "py/plugins", 
     "./py/plugins",
-    "graph-app/py/plugins"
+    "graph-app/py/plugins",
+    "src/../py/plugins"
 ]
 
 print("Testing plugin directory paths:")
