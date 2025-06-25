@@ -575,6 +575,9 @@
                         if (confirm('Create a new graph? This will clear the current graph.')) {
                             window.graphApp.updateGraph({ nodes: [], edges: [] });
                             showStatus('New graph created', 'info');
+                            
+                            // Mark that we just did a new graph operation
+                            window.graphApp._newGraphTimestamp = Date.now();
                         }
                     });
                     
@@ -1055,6 +1058,16 @@
         function showAddNodeDialog(canvasPosition) {
             console.log('showAddNodeDialog called with position:', canvasPosition);
             
+            // Check if we're too soon after a New Graph operation
+            const timeSinceNewGraph = window.graphApp._newGraphTimestamp ? 
+                Date.now() - window.graphApp._newGraphTimestamp : Infinity;
+            
+            if (timeSinceNewGraph < 2000) { // Less than 2 seconds
+                console.log('Too soon after New Graph, adding delay for network stabilization');
+                setTimeout(() => showAddNodeDialog(canvasPosition), 2000 - timeSinceNewGraph);
+                return;
+            }
+            
             // Remove any existing modals first
             const existingModals = document.querySelectorAll('.modal-overlay');
             existingModals.forEach(modal => modal.remove());
@@ -1292,6 +1305,16 @@
         }
         
         function showAddEdgeDialog() {
+            // Check if we're too soon after a New Graph operation
+            const timeSinceNewGraph = window.graphApp._newGraphTimestamp ? 
+                Date.now() - window.graphApp._newGraphTimestamp : Infinity;
+            
+            if (timeSinceNewGraph < 2000) { // Less than 2 seconds
+                console.log('Too soon after New Graph, adding delay for network stabilization');
+                setTimeout(() => showAddEdgeDialog(), 2000 - timeSinceNewGraph);
+                return;
+            }
+            
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
             
