@@ -1494,8 +1494,16 @@ print(f"NetworkX works: {G.number_of_nodes()} nodes")
                     }
                 } catch (e) {
                     console.warn('Could not get user plugins directory, falling back to built-in:', e);
-                    pluginsDirectory = '../py/plugins';
+                    // Try multiple fallback paths for the plugins directory
+                    const possiblePaths = [
+                        '../py/plugins',
+                        'py/plugins', 
+                        './py/plugins',
+                        '/home/carlos/graph-app/py/plugins'
+                    ];
+                    pluginsDirectory = possiblePaths[0]; // Default fallback
                     console.log('🔬 Using fallback plugins directory:', pluginsDirectory);
+                    console.log('🔬 Will test directory existence in Python');
                 }
                 
                 // Load plugin loader module
@@ -1513,19 +1521,49 @@ print(f"NetworkX works: {G.number_of_nodes()} nodes")
 # The plugin_loader code is already executed, so we can access its classes directly
 import js
 import os
-plugin_dir = "${pluginsDirectory.replace(/\\/g, '/')}"
-print(f"Plugin loader initializing with directory: {plugin_dir}")
-print(f"Directory exists: {os.path.exists(plugin_dir)}")
-if os.path.exists(plugin_dir):
-    print(f"Directory contents: {os.listdir(plugin_dir)}")
-_plugin_loader = PluginLoader(plugin_dir)
-print(f"Plugin loader initialized successfully")
+
+# Test multiple possible plugin directory paths
+possible_paths = [
+    "../py/plugins",
+    "py/plugins", 
+    "./py/plugins",
+    "graph-app/py/plugins"
+]
+
+print("Testing plugin directory paths:")
+working_dir = None
+for path in possible_paths:
+    exists = os.path.exists(path)
+    print(f"  {path}: exists = {exists}")
+    if exists:
+        try:
+            contents = os.listdir(path)
+            print(f"    Contents: {contents}")
+            if working_dir is None:
+                working_dir = path
+        except Exception as e:
+            print(f"    Error listing contents: {e}")
+
+if working_dir:
+    print(f"Using working directory: {working_dir}")
+    _plugin_loader = PluginLoader(working_dir)
+else:
+    print("No valid plugin directory found, using fallback path anyway")
+    _plugin_loader = PluginLoader("${pluginsDirectory.replace(/\\/g, '/')}")
+    
+print(f"Plugin loader initialized")
                 `);
                 
                 // Discover plugins
                 await discoverPlugins();
                 
-                console.log('Plugin-based analysis system initialized');
+                // Check if any plugins were actually discovered
+                if (window.graphApp.state.availablePlugins.size === 0) {
+                    console.warn('No plugins discovered, initializing fallback analysis...');
+                    await initializeFallbackAnalysis();
+                } else {
+                    console.log('Plugin-based analysis system initialized with', window.graphApp.state.availablePlugins.size, 'plugins');
+                }
                 
             } catch (error) {
                 console.error('Failed to initialize plugin system, falling back to basic mode:', error);
