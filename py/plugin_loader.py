@@ -63,28 +63,43 @@ class PluginLoader:
         if not init_file.exists():
             raise Exception(f"Plugin {plugin_dir.name} missing __init__.py")
         
-        # Load the plugin module
-        spec = importlib.util.spec_from_file_location(
-            f"plugins.{plugin_dir.name}", 
-            init_file
-        )
+        # Add plugin directory to Python path temporarily
+        plugin_dir_str = str(plugin_dir.absolute())
+        if plugin_dir_str not in sys.path:
+            sys.path.insert(0, plugin_dir_str)
         
-        if spec is None or spec.loader is None:
-            raise Exception(f"Could not load plugin spec for {plugin_dir.name}")
-        
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        try:
+            # Load the plugin module
+            spec = importlib.util.spec_from_file_location(
+                f"plugin_{plugin_dir.name}", 
+                init_file
+            )
+            
+            if spec is None or spec.loader is None:
+                raise Exception(f"Could not load plugin spec for {plugin_dir.name}")
+            
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        finally:
+            # Remove from path to avoid conflicts
+            if plugin_dir_str in sys.path:
+                sys.path.remove(plugin_dir_str)
         
         # Extract plugin info
         if not hasattr(module, 'ANALYSIS_INFO'):
             raise Exception(f"Plugin {plugin_dir.name} missing ANALYSIS_INFO")
         
-        if not hasattr(module, 'analyze_graph'):
-            raise Exception(f"Plugin {plugin_dir.name} missing analyze_graph function")
+        # Note: We don't check for analyze_graph here since it may import NetworkX
+        # which isn't available in system Python, only in Pyodide
         
         plugin_info = module.ANALYSIS_INFO.copy()
         plugin_info['_module'] = module
         plugin_info['_path'] = str(plugin_dir)
+        
+        # Verify analyze_graph exists in analysis.py file
+        analysis_file = plugin_dir / "analysis.py"
+        if not analysis_file.exists():
+            raise Exception(f"Plugin {plugin_dir.name} missing analysis.py file")
         
         # Validate required fields
         required_fields = ['id', 'name', 'description', 'version']

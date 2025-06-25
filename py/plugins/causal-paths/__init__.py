@@ -57,7 +57,7 @@ ANALYSIS_INFO = {
 }
 
 # Import the main analysis function
-from .analysis import analyze_graph
+# from .analysis import analyze_graph
 
 # Export public interface
 __all__ = ['ANALYSIS_INFO', 'analyze_graph']

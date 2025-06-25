@@ -53,5 +53,5 @@ ANALYSIS_INFO = {
     ]
 }
 
-# Export the analysis function
-from .analysis import analyze_graph
+# Export the analysis function (imported dynamically to avoid NetworkX dependency during discovery)
+# # from .analysis import analyze_graph
