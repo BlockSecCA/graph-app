@@ -110,6 +110,15 @@ const menuTemplate = [
                 }
             },
             { type: 'separator' },
+            { 
+                label: 'Restart Application', 
+                accelerator: 'CmdOrCtrl+Shift+R',
+                click: () => {
+                    console.log('Menu: Restart Application clicked');
+                    app.relaunch();
+                    app.quit();
+                }
+            },
             { label: 'Exit', role: 'quit' }
         ]
     },
