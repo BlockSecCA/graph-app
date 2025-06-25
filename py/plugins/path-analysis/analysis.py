@@ -205,15 +205,22 @@ def analyze_graph(nodes: List[Dict], edges: List[Dict], parameters: Dict = None)
         
         # Generate summary
         summary_parts = []
-        if 'shortest_distance' in results_data and results_data['shortest_distance'] is not None:
-            summary_parts.append(f"Shortest path: {results_data['shortest_distance']:.1f} steps")
+        if 'shortest_distance' in results_data:
+            shortest_dist = results_data['shortest_distance']
+            if shortest_dist is not None:
+                summary_parts.append(f"Shortest path: {shortest_dist:.1f} steps")
+            else:
+                summary_parts.append("Shortest path: No path found")
         
         if 'total_paths' in results_data:
             summary_parts.append(f"Found {results_data['total_paths']} paths")
         
         if 'avg_path_efficiency' in results_data:
             efficiency = results_data['avg_path_efficiency']
-            summary_parts.append(f"Average efficiency: {efficiency:.2f}")
+            if efficiency is not None:
+                summary_parts.append(f"Average efficiency: {efficiency:.2f}")
+            else:
+                summary_parts.append("Average efficiency: N/A")
         
         if 'critical_nodes' in results_data:
             critical_count = len(results_data['critical_nodes'])

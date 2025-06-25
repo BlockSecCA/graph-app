@@ -123,7 +123,10 @@ def analyze_graph(nodes: List[Dict], edges: List[Dict], parameters: Dict = None)
                 node_tiers[node_name] = i + 1
                 
                 if show_labels:
-                    node_labels[node_name] = f"{node_name}\n({score:.3f})"
+                    if score is not None:
+                        node_labels[node_name] = f"{node_name}\n({score:.3f})"
+                    else:
+                        node_labels[node_name] = f"{node_name}\n(N/A)"
                 else:
                     node_labels[node_name] = node_name
         

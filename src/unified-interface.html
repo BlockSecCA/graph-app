@@ -1717,7 +1717,20 @@ def run_plugin_analysis():
     try:
         analysis_result = analyze_graph(nodes, edges, params)
         print(f"✅ Plugin ${pluginId} executed successfully")
-        return json.dumps(analysis_result)
+        
+        # Custom JSON encoder to handle frozensets and other non-serializable types
+        class CustomJSONEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, frozenset):
+                    return list(obj)
+                if isinstance(obj, set):
+                    return list(obj)
+                try:
+                    return super().default(obj)
+                except TypeError:
+                    return str(obj)
+        
+        return json.dumps(analysis_result, cls=CustomJSONEncoder)
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
