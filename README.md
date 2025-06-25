@@ -47,15 +47,15 @@ npm start
 1. **Create Nodes**: Right-click on empty space → "Add Node"
 2. **Connect Nodes**: Right-click on empty space → "Add Edge" → Select source and target
 3. **Edit Elements**: Right-click on nodes/edges for edit/delete options
-4. **Analyze Graph**: Analysis runs automatically, or click "Analyze" button
-5. **Save/Load**: Use File menu for graph persistence
+4. **Analyze Graph**: Select plugin from dropdown and click "Run Analysis"
+5. **Save/Load**: Use toolbar buttons for graph persistence
 
 ## 📁 File Operations
 
+- **📂 Load Graph** (toolbar button): Load graph from JSON file using file browser
+- **💾 Save Graph** (toolbar button): Save current graph as JSON file 
 - **File → New Graph** (F5): Create a new empty graph (reloads application)
-- **File → Load Graph** (Ctrl+O): Load graph from JSON file
-- **File → Save Graph** (Ctrl+S): Save current graph as JSON
-- **View → Fit Graph** (Ctrl+0): Center and fit graph to view
+- **File → Restart Application** (Ctrl+Shift+R): Restart the application
 
 ## 🔌 Plugin Development
 

@@ -5,6 +5,37 @@ All notable changes to the Causal Graph Tool will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2025-06-25
+
+### 🚀 Plugin System Breakthrough
+Major breakthrough resolving the Pyodide vs Electron security conflict that was preventing the plugin system from working. All 7 plugins now fully functional.
+
+### ✨ Added
+- **Fetch-based Plugin Loading**: Revolutionary HTTP-based plugin system bypassing filesystem isolation
+- **Full Scientific Stack**: Integrated NetworkX, SciPy, and NumPy packages in Pyodide
+- **Toolbar File Operations**: Direct file browser integration for load/save operations
+- **Unicode Plugin Support**: Base64 encoding system handles any Unicode characters in plugin code
+- **Comprehensive Error Handling**: Detailed debugging and graceful fallback systems
+- **Plugin Package Loading**: Automatic loading of required scientific computing packages
+
+### 🔄 Changed
+- **File Operations**: Moved from menu-based to toolbar button-based (📂 Load, 💾 Save)
+- **Plugin Loading**: Switched from filesystem access to HTTP fetch for security compatibility
+- **Package Management**: Load NetworkX, SciPy, NumPy on startup for plugin compatibility
+- **Menu System**: Removed non-functional IPC-dependent menu items
+
+### 🐛 Fixed
+- **Plugin Discovery**: Resolved contextIsolation vs nodeIntegration conflict
+- **Unicode Encoding**: Fixed "characters outside Latin1 range" errors in plugin code
+- **JSON Serialization**: Added custom encoder for frozensets and complex objects
+- **F-string Errors**: Fixed quote escaping issues in Python code execution
+- **None Value Formatting**: Added null checks for format string operations
+- **Module Dependencies**: Resolved SciPy import errors in node-importance plugin
+
+### 🧹 Removed
+- **Non-functional Menu Items**: Removed Load/Save Graph menu options that depended on IPC
+- **Fit Graph Menu**: Removed View menu item that required IPC communication
+
 ## [2.0.0] - 2025-06-25
 
 ### 🎯 Major Changes
