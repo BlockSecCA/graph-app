@@ -1466,9 +1466,8 @@
                 window.pyodide = await loadPyodide();
                 console.log('Pyodide loaded successfully');
                 
-                // Install required packages
-                await window.pyodide.loadPackage(['networkx']);
-                console.log('NetworkX installed');
+                // Note: NetworkX loading deferred until plugin execution to avoid import conflicts
+                console.log('Skipping NetworkX pre-loading to avoid import conflicts');
                 
                 // Load plugin loader module
                 const pluginLoaderResponse = await fetch('py/plugin_loader.py');
@@ -1539,6 +1538,14 @@ print(f"Plugin loader initialized with directory: ${pluginsDirectory.replace(/\\
         
         async function executePlugin(pluginId, graph, parameters) {
             try {
+                // Ensure NetworkX is loaded before plugin execution
+                if (!window.networkXLoaded) {
+                    console.log('Loading NetworkX for plugin execution...');
+                    await window.pyodide.loadPackage(['networkx']);
+                    window.networkXLoaded = true;
+                    console.log('NetworkX loaded successfully');
+                }
+                
                 const nodesJson = JSON.stringify(graph.nodes);
                 const edgesJson = JSON.stringify(graph.edges);
                 const paramsJson = JSON.stringify(parameters || {});

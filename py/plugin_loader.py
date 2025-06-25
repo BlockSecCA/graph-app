@@ -135,8 +135,24 @@ class PluginLoader:
             raise Exception(f"Plugin '{plugin_id}' not found")
         
         try:
+            # Import the analysis module dynamically to avoid NetworkX dependency during discovery
+            plugin_dir = Path(plugin['_path'])
+            analysis_file = plugin_dir / "analysis.py"
+            
+            # Load the analysis module with NetworkX available
+            spec = importlib.util.spec_from_file_location(
+                f"analysis_{plugin_id.replace('-', '_')}", 
+                analysis_file
+            )
+            
+            if spec is None or spec.loader is None:
+                raise Exception(f"Could not load analysis module for {plugin_id}")
+            
+            analysis_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(analysis_module)
+            
             # Call the plugin's analyze_graph function
-            return plugin['_module'].analyze_graph(nodes, edges, parameters)
+            return analysis_module.analyze_graph(nodes, edges, parameters)
         except Exception as e:
             raise Exception(f"Plugin execution failed: {str(e)}")
     
