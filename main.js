@@ -57,6 +57,12 @@ const menuTemplate = [
         label: 'File',
         submenu: [
             { 
+                label: 'New Graph', 
+                accelerator: 'F5',
+                role: 'reload'
+            },
+            { type: 'separator' },
+            { 
                 label: 'Load Graph...', 
                 accelerator: 'CmdOrCtrl+O',
                 click: async () => {
@@ -121,7 +127,6 @@ const menuTemplate = [
                 }
             },
             { type: 'separator' },
-            { label: 'Reload', role: 'reload' },
             { label: 'Toggle Developer Tools', role: 'toggledevtools' }
         ]
     },
