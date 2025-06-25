@@ -1,0 +1,228 @@
+{
+  "metadata": {
+    "name": "Comprehensive Test Network",
+    "description": "Multi-layered network designed to test all plugin capabilities with realistic patterns",
+    "created": "2025-01-25",
+    "version": "1.0",
+    "tags": ["test", "comprehensive", "multi-community", "weighted", "directed"],
+    "use_case": "Plugin testing and demonstration of all analysis capabilities"
+  },
+  "nodes": [
+    {"id": "CEO", "label": "CEO", "type": "executive", "group": "leadership", "x": 400, "y": 100},
+    {"id": "CTO", "label": "CTO", "type": "executive", "group": "leadership", "x": 300, "y": 150},
+    {"id": "CFO", "label": "CFO", "type": "executive", "group": "leadership", "x": 500, "y": 150},
+    {"id": "VP_ENG", "label": "VP Engineering", "type": "manager", "group": "engineering", "x": 200, "y": 200},
+    {"id": "VP_SALES", "label": "VP Sales", "type": "manager", "group": "sales", "x": 600, "y": 200},
+    {"id": "VP_MARKETING", "label": "VP Marketing", "type": "manager", "group": "marketing", "x": 700, "y": 200},
+    
+    {"id": "ENG_MGR1", "label": "Engineering Manager 1", "type": "manager", "group": "engineering", "x": 100, "y": 280},
+    {"id": "ENG_MGR2", "label": "Engineering Manager 2", "type": "manager", "group": "engineering", "x": 200, "y": 280},
+    {"id": "ENG_MGR3", "label": "Engineering Manager 3", "type": "manager", "group": "engineering", "x": 300, "y": 280},
+    
+    {"id": "SALES_MGR1", "label": "Sales Manager West", "type": "manager", "group": "sales", "x": 550, "y": 280},
+    {"id": "SALES_MGR2", "label": "Sales Manager East", "type": "manager", "group": "sales", "x": 650, "y": 280},
+    
+    {"id": "MKT_MGR1", "label": "Marketing Manager", "type": "manager", "group": "marketing", "x": 750, "y": 280},
+    {"id": "PRODUCT_MGR", "label": "Product Manager", "type": "manager", "group": "product", "x": 400, "y": 280},
+    
+    {"id": "SENIOR_DEV1", "label": "Senior Developer 1", "type": "developer", "group": "engineering", "x": 50, "y": 360},
+    {"id": "SENIOR_DEV2", "label": "Senior Developer 2", "type": "developer", "group": "engineering", "x": 100, "y": 360},
+    {"id": "SENIOR_DEV3", "label": "Senior Developer 3", "type": "developer", "group": "engineering", "x": 150, "y": 360},
+    {"id": "SENIOR_DEV4", "label": "Senior Developer 4", "type": "developer", "group": "engineering", "x": 200, "y": 360},
+    {"id": "SENIOR_DEV5", "label": "Senior Developer 5", "type": "developer", "group": "engineering", "x": 250, "y": 360},
+    {"id": "SENIOR_DEV6", "label": "Senior Developer 6", "type": "developer", "group": "engineering", "x": 300, "y": 360},
+    
+    {"id": "DEV1", "label": "Developer 1", "type": "developer", "group": "engineering", "x": 75, "y": 440},
+    {"id": "DEV2", "label": "Developer 2", "type": "developer", "group": "engineering", "x": 125, "y": 440},
+    {"id": "DEV3", "label": "Developer 3", "type": "developer", "group": "engineering", "x": 175, "y": 440},
+    {"id": "DEV4", "label": "Developer 4", "type": "developer", "group": "engineering", "x": 225, "y": 440},
+    {"id": "DEV5", "label": "Developer 5", "type": "developer", "group": "engineering", "x": 275, "y": 440},
+    {"id": "DEV6", "label": "Developer 6", "type": "developer", "group": "engineering", "x": 325, "y": 440},
+    
+    {"id": "INTERN1", "label": "Intern 1", "type": "intern", "group": "engineering", "x": 100, "y": 520},
+    {"id": "INTERN2", "label": "Intern 2", "type": "intern", "group": "engineering", "x": 200, "y": 520},
+    {"id": "INTERN3", "label": "Intern 3", "type": "intern", "group": "engineering", "x": 300, "y": 520},
+    
+    {"id": "SALES_REP1", "label": "Sales Rep 1", "type": "sales_rep", "group": "sales", "x": 500, "y": 360},
+    {"id": "SALES_REP2", "label": "Sales Rep 2", "type": "sales_rep", "group": "sales", "x": 550, "y": 360},
+    {"id": "SALES_REP3", "label": "Sales Rep 3", "type": "sales_rep", "group": "sales", "x": 600, "y": 360},
+    {"id": "SALES_REP4", "label": "Sales Rep 4", "type": "sales_rep", "group": "sales", "x": 650, "y": 360},
+    {"id": "SALES_REP5", "label": "Sales Rep 5", "type": "sales_rep", "group": "sales", "x": 700, "y": 360},
+    
+    {"id": "SALES_SUPPORT1", "label": "Sales Support 1", "type": "support", "group": "sales", "x": 525, "y": 440},
+    {"id": "SALES_SUPPORT2", "label": "Sales Support 2", "type": "support", "group": "sales", "x": 625, "y": 440},
+    
+    {"id": "MKT_SPECIALIST1", "label": "Marketing Specialist 1", "type": "specialist", "group": "marketing", "x": 700, "y": 360},
+    {"id": "MKT_SPECIALIST2", "label": "Marketing Specialist 2", "type": "specialist", "group": "marketing", "x": 750, "y": 360},
+    {"id": "MKT_SPECIALIST3", "label": "Marketing Specialist 3", "type": "specialist", "group": "marketing", "x": 800, "y": 360},
+    
+    {"id": "DESIGNER1", "label": "UI/UX Designer 1", "type": "designer", "group": "design", "x": 350, "y": 360},
+    {"id": "DESIGNER2", "label": "UI/UX Designer 2", "type": "designer", "group": "design", "x": 400, "y": 360},
+    {"id": "DESIGNER3", "label": "Graphic Designer", "type": "designer", "group": "design", "x": 450, "y": 360},
+    
+    {"id": "QA1", "label": "QA Engineer 1", "type": "qa", "group": "quality", "x": 150, "y": 200},
+    {"id": "QA2", "label": "QA Engineer 2", "type": "qa", "group": "quality", "x": 250, "y": 200},
+    
+    {"id": "DEVOPS1", "label": "DevOps Engineer 1", "type": "devops", "group": "infrastructure", "x": 350, "y": 200},
+    {"id": "DEVOPS2", "label": "DevOps Engineer 2", "type": "devops", "group": "infrastructure", "x": 450, "y": 200},
+    
+    {"id": "DATA_SCIENTIST", "label": "Data Scientist", "type": "analyst", "group": "analytics", "x": 800, "y": 280},
+    {"id": "BUSINESS_ANALYST", "label": "Business Analyst", "type": "analyst", "group": "analytics", "x": 850, "y": 280},
+    
+    {"id": "HR_MANAGER", "label": "HR Manager", "type": "manager", "group": "hr", "x": 100, "y": 100},
+    {"id": "FINANCE_ANALYST", "label": "Finance Analyst", "type": "analyst", "group": "finance", "x": 550, "y": 100},
+    
+    {"id": "EXTERNAL_CONSULTANT", "label": "External Consultant", "type": "consultant", "group": "external", "x": 900, "y": 200},
+    {"id": "VENDOR_CONTACT", "label": "Vendor Contact", "type": "vendor", "group": "external", "x": 950, "y": 300},
+    
+    {"id": "ISOLATED_NODE", "label": "Isolated System", "type": "system", "group": "isolated", "x": 50, "y": 50}
+  ],
+  "edges": [
+    {"source": "CEO", "target": "CTO", "type": "+", "weight": 9.5, "label": "reports to"},
+    {"source": "CEO", "target": "CFO", "type": "+", "weight": 9.0, "label": "reports to"},
+    {"source": "CEO", "target": "VP_SALES", "type": "+", "weight": 8.5, "label": "reports to"},
+    {"source": "CEO", "target": "VP_MARKETING", "type": "+", "weight": 7.5, "label": "reports to"},
+    {"source": "CEO", "target": "HR_MANAGER", "type": "+", "weight": 6.0, "label": "reports to"},
+    
+    {"source": "CTO", "target": "VP_ENG", "type": "+", "weight": 9.0, "label": "manages"},
+    {"source": "CTO", "target": "DEVOPS1", "type": "+", "weight": 7.0, "label": "oversees"},
+    {"source": "CTO", "target": "DEVOPS2", "type": "+", "weight": 6.5, "label": "oversees"},
+    {"source": "CTO", "target": "PRODUCT_MGR", "type": "+", "weight": 8.0, "label": "collaborates"},
+    
+    {"source": "VP_ENG", "target": "ENG_MGR1", "type": "+", "weight": 8.5, "label": "manages"},
+    {"source": "VP_ENG", "target": "ENG_MGR2", "type": "+", "weight": 8.5, "label": "manages"},
+    {"source": "VP_ENG", "target": "ENG_MGR3", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "VP_ENG", "target": "QA1", "type": "+", "weight": 7.0, "label": "coordinates"},
+    {"source": "VP_ENG", "target": "QA2", "type": "+", "weight": 7.0, "label": "coordinates"},
+    
+    {"source": "ENG_MGR1", "target": "SENIOR_DEV1", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "ENG_MGR1", "target": "SENIOR_DEV2", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "ENG_MGR1", "target": "DEV1", "type": "+", "weight": 7.0, "label": "manages"},
+    {"source": "ENG_MGR1", "target": "DEV2", "type": "+", "weight": 7.0, "label": "manages"},
+    {"source": "ENG_MGR1", "target": "INTERN1", "type": "+", "weight": 5.0, "label": "supervises"},
+    
+    {"source": "ENG_MGR2", "target": "SENIOR_DEV3", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "ENG_MGR2", "target": "SENIOR_DEV4", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "ENG_MGR2", "target": "DEV3", "type": "+", "weight": 7.0, "label": "manages"},
+    {"source": "ENG_MGR2", "target": "DEV4", "type": "+", "weight": 7.0, "label": "manages"},
+    {"source": "ENG_MGR2", "target": "INTERN2", "type": "+", "weight": 5.0, "label": "supervises"},
+    
+    {"source": "ENG_MGR3", "target": "SENIOR_DEV5", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "ENG_MGR3", "target": "SENIOR_DEV6", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "ENG_MGR3", "target": "DEV5", "type": "+", "weight": 7.0, "label": "manages"},
+    {"source": "ENG_MGR3", "target": "DEV6", "type": "+", "weight": 7.0, "label": "manages"},
+    {"source": "ENG_MGR3", "target": "INTERN3", "type": "+", "weight": 5.0, "label": "supervises"},
+    
+    {"source": "VP_SALES", "target": "SALES_MGR1", "type": "+", "weight": 8.5, "label": "manages"},
+    {"source": "VP_SALES", "target": "SALES_MGR2", "type": "+", "weight": 8.5, "label": "manages"},
+    {"source": "VP_SALES", "target": "FINANCE_ANALYST", "type": "+", "weight": 6.0, "label": "coordinates"},
+    
+    {"source": "SALES_MGR1", "target": "SALES_REP1", "type": "+", "weight": 7.5, "label": "manages"},
+    {"source": "SALES_MGR1", "target": "SALES_REP2", "type": "+", "weight": 7.5, "label": "manages"},
+    {"source": "SALES_MGR1", "target": "SALES_SUPPORT1", "type": "+", "weight": 6.5, "label": "manages"},
+    
+    {"source": "SALES_MGR2", "target": "SALES_REP3", "type": "+", "weight": 7.5, "label": "manages"},
+    {"source": "SALES_MGR2", "target": "SALES_REP4", "type": "+", "weight": 7.5, "label": "manages"},
+    {"source": "SALES_MGR2", "target": "SALES_REP5", "type": "+", "weight": 7.0, "label": "manages"},
+    {"source": "SALES_MGR2", "target": "SALES_SUPPORT2", "type": "+", "weight": 6.5, "label": "manages"},
+    
+    {"source": "VP_MARKETING", "target": "MKT_MGR1", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "VP_MARKETING", "target": "DATA_SCIENTIST", "type": "+", "weight": 7.0, "label": "coordinates"},
+    {"source": "VP_MARKETING", "target": "BUSINESS_ANALYST", "type": "+", "weight": 6.5, "label": "coordinates"},
+    
+    {"source": "MKT_MGR1", "target": "MKT_SPECIALIST1", "type": "+", "weight": 7.5, "label": "manages"},
+    {"source": "MKT_MGR1", "target": "MKT_SPECIALIST2", "type": "+", "weight": 7.5, "label": "manages"},
+    {"source": "MKT_MGR1", "target": "MKT_SPECIALIST3", "type": "+", "weight": 7.0, "label": "manages"},
+    
+    {"source": "PRODUCT_MGR", "target": "DESIGNER1", "type": "+", "weight": 8.0, "label": "coordinates"},
+    {"source": "PRODUCT_MGR", "target": "DESIGNER2", "type": "+", "weight": 8.0, "label": "coordinates"},
+    {"source": "PRODUCT_MGR", "target": "DESIGNER3", "type": "+", "weight": 7.0, "label": "coordinates"},
+    
+    {"source": "SENIOR_DEV1", "target": "DEV1", "type": "+", "weight": 6.0, "label": "mentors"},
+    {"source": "SENIOR_DEV2", "target": "DEV2", "type": "+", "weight": 6.0, "label": "mentors"},
+    {"source": "SENIOR_DEV3", "target": "DEV3", "type": "+", "weight": 6.0, "label": "mentors"},
+    {"source": "SENIOR_DEV4", "target": "DEV4", "type": "+", "weight": 6.0, "label": "mentors"},
+    {"source": "SENIOR_DEV5", "target": "DEV5", "type": "+", "weight": 6.0, "label": "mentors"},
+    {"source": "SENIOR_DEV6", "target": "DEV6", "type": "+", "weight": 6.0, "label": "mentors"},
+    
+    {"source": "SENIOR_DEV1", "target": "INTERN1", "type": "+", "weight": 4.0, "label": "mentors"},
+    {"source": "SENIOR_DEV3", "target": "INTERN2", "type": "+", "weight": 4.0, "label": "mentors"},
+    {"source": "SENIOR_DEV5", "target": "INTERN3", "type": "+", "weight": 4.0, "label": "mentors"},
+    
+    {"source": "DEVOPS1", "target": "SENIOR_DEV1", "type": "+", "weight": 5.0, "label": "supports"},
+    {"source": "DEVOPS1", "target": "SENIOR_DEV3", "type": "+", "weight": 5.0, "label": "supports"},
+    {"source": "DEVOPS1", "target": "SENIOR_DEV5", "type": "+", "weight": 5.0, "label": "supports"},
+    {"source": "DEVOPS2", "target": "SENIOR_DEV2", "type": "+", "weight": 5.0, "label": "supports"},
+    {"source": "DEVOPS2", "target": "SENIOR_DEV4", "type": "+", "weight": 5.0, "label": "supports"},
+    {"source": "DEVOPS2", "target": "SENIOR_DEV6", "type": "+", "weight": 5.0, "label": "supports"},
+    
+    {"source": "QA1", "target": "SENIOR_DEV1", "type": "+", "weight": 6.0, "label": "tests"},
+    {"source": "QA1", "target": "SENIOR_DEV2", "type": "+", "weight": 6.0, "label": "tests"},
+    {"source": "QA1", "target": "SENIOR_DEV3", "type": "+", "weight": 6.0, "label": "tests"},
+    {"source": "QA2", "target": "SENIOR_DEV4", "type": "+", "weight": 6.0, "label": "tests"},
+    {"source": "QA2", "target": "SENIOR_DEV5", "type": "+", "weight": 6.0, "label": "tests"},
+    {"source": "QA2", "target": "SENIOR_DEV6", "type": "+", "weight": 6.0, "label": "tests"},
+    
+    {"source": "PRODUCT_MGR", "target": "VP_ENG", "type": "+", "weight": 7.0, "label": "coordinates"},
+    {"source": "PRODUCT_MGR", "target": "VP_MARKETING", "type": "+", "weight": 6.5, "label": "coordinates"},
+    {"source": "PRODUCT_MGR", "target": "VP_SALES", "type": "+", "weight": 6.0, "label": "coordinates"},
+    
+    {"source": "DATA_SCIENTIST", "target": "BUSINESS_ANALYST", "type": "+", "weight": 7.0, "label": "collaborates"},
+    {"source": "DATA_SCIENTIST", "target": "SALES_MGR1", "type": "+", "weight": 5.0, "label": "analyzes"},
+    {"source": "DATA_SCIENTIST", "target": "SALES_MGR2", "type": "+", "weight": 5.0, "label": "analyzes"},
+    
+    {"source": "EXTERNAL_CONSULTANT", "target": "CEO", "type": "+", "weight": 6.0, "label": "advises"},
+    {"source": "EXTERNAL_CONSULTANT", "target": "CTO", "type": "+", "weight": 5.5, "label": "advises"},
+    {"source": "VENDOR_CONTACT", "target": "DEVOPS1", "type": "+", "weight": 4.0, "label": "supplies"},
+    {"source": "VENDOR_CONTACT", "target": "DEVOPS2", "type": "+", "weight": 4.0, "label": "supplies"},
+    
+    {"source": "HR_MANAGER", "target": "ENG_MGR1", "type": "+", "weight": 3.0, "label": "hr_support"},
+    {"source": "HR_MANAGER", "target": "ENG_MGR2", "type": "+", "weight": 3.0, "label": "hr_support"},
+    {"source": "HR_MANAGER", "target": "ENG_MGR3", "type": "+", "weight": 3.0, "label": "hr_support"},
+    {"source": "HR_MANAGER", "target": "SALES_MGR1", "type": "+", "weight": 3.0, "label": "hr_support"},
+    {"source": "HR_MANAGER", "target": "SALES_MGR2", "type": "+", "weight": 3.0, "label": "hr_support"},
+    {"source": "HR_MANAGER", "target": "MKT_MGR1", "type": "+", "weight": 3.0, "label": "hr_support"},
+    
+    {"source": "CFO", "target": "FINANCE_ANALYST", "type": "+", "weight": 8.0, "label": "manages"},
+    {"source": "FINANCE_ANALYST", "target": "VP_SALES", "type": "+", "weight": 5.0, "label": "reports_to"},
+    {"source": "FINANCE_ANALYST", "target": "VP_MARKETING", "type": "+", "weight": 4.0, "label": "reports_to"},
+    
+    {"source": "DESIGNER1", "target": "DESIGNER2", "type": "+", "weight": 6.0, "label": "collaborates"},
+    {"source": "DESIGNER2", "target": "DESIGNER3", "type": "+", "weight": 5.5, "label": "collaborates"},
+    {"source": "DESIGNER1", "target": "MKT_SPECIALIST1", "type": "+", "weight": 4.0, "label": "collaborates"},
+    {"source": "DESIGNER3", "target": "MKT_SPECIALIST2", "type": "+", "weight": 4.0, "label": "collaborates"},
+    
+    {"source": "SALES_REP1", "target": "SALES_REP2", "type": "+", "weight": 3.0, "label": "collaborates"},
+    {"source": "SALES_REP3", "target": "SALES_REP4", "type": "+", "weight": 3.0, "label": "collaborates"},
+    {"source": "SALES_REP4", "target": "SALES_REP5", "type": "+", "weight": 2.5, "label": "collaborates"},
+    
+    {"source": "MKT_SPECIALIST1", "target": "MKT_SPECIALIST2", "type": "+", "weight": 5.0, "label": "collaborates"},
+    {"source": "MKT_SPECIALIST2", "target": "MKT_SPECIALIST3", "type": "+", "weight": 4.5, "label": "collaborates"},
+    
+    {"source": "DEV1", "target": "DEV2", "type": "+", "weight": 4.0, "label": "pair_programs"},
+    {"source": "DEV3", "target": "DEV4", "type": "+", "weight": 4.0, "label": "pair_programs"},
+    {"source": "DEV5", "target": "DEV6", "type": "+", "weight": 4.0, "label": "pair_programs"},
+    
+    {"source": "SENIOR_DEV1", "target": "SENIOR_DEV2", "type": "+", "weight": 5.0, "label": "technical_lead"},
+    {"source": "SENIOR_DEV3", "target": "SENIOR_DEV4", "type": "+", "weight": 5.0, "label": "technical_lead"},
+    {"source": "SENIOR_DEV5", "target": "SENIOR_DEV6", "type": "+", "weight": 5.0, "label": "technical_lead"},
+    
+    {"source": "DEVOPS1", "target": "DEVOPS2", "type": "+", "weight": 7.0, "label": "coordinates"},
+    {"source": "QA1", "target": "QA2", "type": "+", "weight": 6.0, "label": "coordinates"},
+    
+    {"source": "SALES_SUPPORT1", "target": "SALES_REP1", "type": "+", "weight": 5.0, "label": "supports"},
+    {"source": "SALES_SUPPORT1", "target": "SALES_REP2", "type": "+", "weight": 5.0, "label": "supports"},
+    {"source": "SALES_SUPPORT2", "target": "SALES_REP3", "type": "+", "weight": 5.0, "label": "supports"},
+    {"source": "SALES_SUPPORT2", "target": "SALES_REP4", "type": "+", "weight": 5.0, "label": "supports"},
+    
+    {"source": "INTERN1", "target": "INTERN2", "type": "+", "weight": 3.0, "label": "learns_together"},
+    {"source": "INTERN2", "target": "INTERN3", "type": "+", "weight": 3.0, "label": "learns_together"},
+    
+    {"source": "SENIOR_DEV2", "target": "SENIOR_DEV4", "type": "-", "weight": 2.0, "label": "tech_disagreement"},
+    {"source": "SALES_REP1", "target": "SALES_REP4", "type": "-", "weight": 1.5, "label": "territory_conflict"},
+    {"source": "MKT_SPECIALIST1", "target": "SALES_REP2", "type": "-", "weight": 1.0, "label": "strategy_conflict"},
+    
+    {"source": "EXTERNAL_CONSULTANT", "target": "SENIOR_DEV1", "type": "+", "weight": 3.0, "label": "technical_advice"},
+    {"source": "EXTERNAL_CONSULTANT", "target": "PRODUCT_MGR", "type": "+", "weight": 4.0, "label": "strategy_advice"}
+  ]
+}
