@@ -3,7 +3,7 @@
 ## Project Overview
 **graph-app** - Professional Electron-based causal graph editor and analysis tool
 - **Repository**: https://github.com/BlockSecCA/graph-app
-- **Version**: 2.0.0 (Major architectural rewrite completed)
+- **Version**: 2.1.0 (Advanced visualization controls added)
 - **Tech Stack**: Electron v25.0.0, Node.js v20.19.2, vis-network, Pyodide, NetworkX
 - **Purpose**: Modern unified interface for graph editing with extensible Python-based analysis
 
@@ -28,19 +28,23 @@ main.js (Electron main process)
 7. **User Plugin Directory**: User-serviceable plugin system in app data folder
 8. **Proper Versioning**: Semantic versioning and comprehensive release management
 
-## Current State (v2.0)
+## Current State (v2.1)
 - ✅ Unified interface with real-time editor-analysis integration
 - ✅ Professional context menu-based workflow
 - ✅ Extensible plugin system with Python/NetworkX
-- ✅ Comprehensive documentation and v2.0 release
+- ✅ **Advanced visualization preferences** (node sizing, arrow scaling, layout control)
+- ✅ **Persistent user preferences** (localStorage-based)
+- ✅ **Real-time visualization updates** (automatic preference application)
+- ✅ Comprehensive documentation and release management
 - ✅ Full test coverage for new architecture
 - ❌ Still limited to proprietary JSON format (roadmap: v3.0)
 - ❌ Fixed schema system (roadmap: v3.0)
 
-## Next Priorities (Post v2.0)
-1. **Phase 1 (v2.1)**: Advanced visualization options and export formats
-2. **Phase 2 (v2.2)**: Performance optimization and expanded plugin ecosystem
-3. **Phase 3 (v3.0)**: Multi-format import and flexible schema system
+## Next Priorities (Post v2.1)
+1. **Phase 1 (v2.1)**: ✅ Advanced visualization options **COMPLETE**
+2. **Phase 2 (v2.2)**: Export formats and performance optimization
+3. **Phase 3 (v2.3)**: Expanded plugin ecosystem and community features
+4. **Phase 4 (v3.0)**: Multi-format import and flexible schema system
 
 ## Technical Architecture Notes
 
@@ -93,15 +97,23 @@ main.js (Electron main process)
 - ✅ **Error Handling**: Comprehensive debugging and graceful fallbacks
 - ✅ **Template System**: Plugin development template remains clean and user-friendly
 
-**Status**: 🎉 **v2.0.1 COMPLETE** - Python plugin ecosystem fully operational and battle-tested. All 7 plugins working flawlessly. System ready for production use, user adoption, and community plugin development.
+**Status**: 🎉 **v2.1.0 COMPLETE** - Advanced visualization preferences system fully operational. Users can now customize node sizing, arrow scaling, and physics layout with persistent preferences. Addresses GitHub issue #39 with comprehensive visualization controls.
 
-## v2.0.x Series Complete ✅
-The 2.0.x vision is now fully realized:
-- ✅ **Unified Interface**: Professional single-page design
-- ✅ **Plugin System**: 7 working Python analysis plugins  
-- ✅ **Scientific Computing**: Full NetworkX, SciPy, NumPy integration
-- ✅ **User Experience**: Intuitive toolbar and context menu interface
-- ✅ **Reliability**: Robust error handling and fallback systems
-- ✅ **Developer Experience**: Clean plugin template and development workflow
+## v2.1.0 New Features ✅
+- ✅ **Visualization Preferences Panel**: Collapsible UI in graph editor header
+- ✅ **Node Size Control**: Manual sizing (8-32px) with auto-size based on connections
+- ✅ **Arrow Scale Control**: Adjustable arrow sizes (0.5-2.5x) with value-based scaling
+- ✅ **Physics Layout Control**: Tight/Normal/Loose presets with custom spring length
+- ✅ **Persistent Preferences**: localStorage-based settings that survive app restarts
+- ✅ **Real-time Updates**: Automatic preference application on graph changes
+- ✅ **Backward Compatibility**: Defaults match previous v2.0.x behavior
 
-Ready for **Phase 2** development (advanced visualizations, export formats) or **Phase 3** (multi-format import, flexible schemas).
+## v2.1 Series Complete ✅
+The visualization enhancement vision is now fully realized:
+- ✅ **User-Controlled Visualization**: Professional preference system
+- ✅ **Large Graph Support**: Physics presets for better large graph layouts
+- ✅ **Value-Based Scaling**: Arrows and nodes can reflect data importance
+- ✅ **Persistent Experience**: Settings remembered across sessions
+- ✅ **Non-Intrusive UI**: Clean collapsible panel design
+
+Ready for **Phase 2** development (export formats, performance) or **Phase 3** (expanded plugins, community features).

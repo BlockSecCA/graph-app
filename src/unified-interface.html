@@ -157,6 +157,94 @@
             border-bottom: 1px solid #ddd;
             font-weight: 600;
             color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-header h2 {
+            margin: 0;
+        }
+
+        .prefs-toggle {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .prefs-toggle:hover {
+            background: #2980b9;
+        }
+
+        /* Visualization Preferences Panel */
+        .viz-preferences {
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            padding: 20px;
+            display: none; /* Hidden by default */
+        }
+
+        .viz-preferences.expanded {
+            display: block;
+        }
+
+        .pref-section {
+            margin-bottom: 20px;
+        }
+
+        .pref-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .pref-section h4 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .pref-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .pref-control:last-child {
+            margin-bottom: 0;
+        }
+
+        .pref-label {
+            min-width: 120px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .pref-slider {
+            flex: 1;
+            max-width: 150px;
+        }
+
+        .pref-value {
+            min-width: 40px;
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .pref-checkbox {
+            margin-right: 6px;
+        }
+
+        .pref-select {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
         }
 
 
@@ -507,6 +595,55 @@
             <div class="editor-pane">
                 <div class="editor-header">
                     <h2>Graph Editor</h2>
+                    <button id="prefs-toggle" class="prefs-toggle">⚙️ Visualization</button>
+                </div>
+                
+                <!-- Visualization Preferences Panel -->
+                <div id="viz-preferences" class="viz-preferences">
+                    <div class="pref-section">
+                        <h4>Node Settings</h4>
+                        <div class="pref-control">
+                            <label class="pref-label">Node Size:</label>
+                            <input type="range" id="node-size-slider" class="pref-slider" min="8" max="32" step="2" value="16">
+                            <span id="node-size-value" class="pref-value">16px</span>
+                        </div>
+                        <div class="pref-control">
+                            <label class="pref-label">Auto-size nodes:</label>
+                            <input type="checkbox" id="node-auto-size" class="pref-checkbox">
+                            <span style="font-size: 12px; color: #777;">Size based on connections</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pref-section">
+                        <h4>Edge Settings</h4>
+                        <div class="pref-control">
+                            <label class="pref-label">Arrow Scale:</label>
+                            <input type="range" id="arrow-scale-slider" class="pref-slider" min="0.5" max="2.5" step="0.1" value="1.2">
+                            <span id="arrow-scale-value" class="pref-value">1.2x</span>
+                        </div>
+                        <div class="pref-control">
+                            <label class="pref-label">Scale by value:</label>
+                            <input type="checkbox" id="arrow-scale-by-value" class="pref-checkbox">
+                            <span style="font-size: 12px; color: #777;">Arrow size reflects edge weight</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pref-section">
+                        <h4>Layout Settings</h4>
+                        <div class="pref-control">
+                            <label class="pref-label">Node Spacing:</label>
+                            <select id="physics-preset" class="pref-select">
+                                <option value="tight">Tight</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="loose">Loose</option>
+                            </select>
+                        </div>
+                        <div class="pref-control">
+                            <label class="pref-label">Spring Length:</label>
+                            <input type="range" id="spring-length-slider" class="pref-slider" min="50" max="200" step="5" value="95">
+                            <span id="spring-length-value" class="pref-value">95px</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Graph Network (takes full space) -->
@@ -650,6 +787,214 @@
             console.log('Application initialized successfully');
         }
 
+        // Visualization Preferences Management
+        function initializeVisualizationPreferences(network, options) {
+            // Default preferences (matching current configuration)
+            const defaultPrefs = {
+                nodeSize: 16,
+                nodeSizeAuto: false,
+                arrowScale: 1.2,
+                arrowScaleByValue: false,
+                springLength: 95,
+                physicsPreset: 'normal'
+            };
+
+            // Load preferences from localStorage or use defaults
+            function loadPreferences() {
+                const saved = localStorage.getItem('graph-app-viz-preferences');
+                return saved ? { ...defaultPrefs, ...JSON.parse(saved) } : defaultPrefs;
+            }
+
+            // Save preferences to localStorage
+            function savePreferences(prefs) {
+                localStorage.setItem('graph-app-viz-preferences', JSON.stringify(prefs));
+            }
+
+            // Apply preferences to network
+            function applyPreferences(prefs) {
+                const newOptions = {
+                    nodes: {
+                        ...options.nodes,
+                        size: prefs.nodeSizeAuto ? undefined : prefs.nodeSize
+                    },
+                    edges: {
+                        ...options.edges,
+                        arrows: { 
+                            to: { 
+                                enabled: true, 
+                                scaleFactor: prefs.arrowScale 
+                            } 
+                        }
+                    },
+                    physics: {
+                        ...options.physics,
+                        barnesHut: {
+                            ...options.physics.barnesHut,
+                            springLength: prefs.springLength,
+                            ...(prefs.physicsPreset === 'tight' && {
+                                gravitationalConstant: -3000,
+                                centralGravity: 0.5,
+                                springLength: prefs.springLength * 0.7
+                            }),
+                            ...(prefs.physicsPreset === 'loose' && {
+                                gravitationalConstant: -1000,
+                                centralGravity: 0.1,
+                                springLength: prefs.springLength * 1.3
+                            })
+                        }
+                    }
+                };
+
+                network.setOptions(newOptions);
+
+                // Handle auto-sizing nodes
+                if (prefs.nodeSizeAuto) {
+                    updateAutoSizedNodes(network);
+                }
+
+                // Handle value-based arrow scaling
+                if (prefs.arrowScaleByValue) {
+                    updateValueBasedArrows(network, prefs.arrowScale);
+                }
+            }
+
+            // Update node sizes based on connections
+            function updateAutoSizedNodes(network) {
+                const nodes = network.body.data.nodes;
+                const edges = network.body.data.edges;
+                
+                if (nodes && edges) {
+                    const nodeConnections = {};
+                    edges.forEach(edge => {
+                        nodeConnections[edge.from] = (nodeConnections[edge.from] || 0) + 1;
+                        nodeConnections[edge.to] = (nodeConnections[edge.to] || 0) + 1;
+                    });
+
+                    const updates = nodes.map(node => ({
+                        id: node.id,
+                        size: Math.max(12, Math.min(32, 8 + (nodeConnections[node.id] || 0) * 3))
+                    }));
+
+                    nodes.update(updates);
+                }
+            }
+
+            // Update arrow sizes based on edge values
+            function updateValueBasedArrows(network, baseScale) {
+                const edges = network.body.data.edges;
+                
+                if (edges) {
+                    const values = edges.map(edge => Math.abs(parseFloat(edge.value) || 1));
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const valueRange = maxValue - minValue || 1;
+
+                    const updates = edges.map(edge => {
+                        const value = Math.abs(parseFloat(edge.value) || 1);
+                        const normalizedValue = (value - minValue) / valueRange;
+                        const scaleFactor = baseScale * (0.5 + normalizedValue * 1.5); // 0.5x to 2x range
+                        
+                        return {
+                            id: edge.id,
+                            arrows: { to: { enabled: true, scaleFactor } }
+                        };
+                    });
+
+                    edges.update(updates);
+                }
+            }
+
+            // Initialize preferences panel
+            const prefsToggle = document.getElementById('prefs-toggle');
+            const prefsPanel = document.getElementById('viz-preferences');
+            
+            // Load and apply initial preferences
+            let currentPrefs = loadPreferences();
+            updateUI(currentPrefs);
+            applyPreferences(currentPrefs);
+
+            // Toggle panel visibility
+            prefsToggle.addEventListener('click', () => {
+                prefsPanel.classList.toggle('expanded');
+                prefsToggle.textContent = prefsPanel.classList.contains('expanded') 
+                    ? '⚙️ Hide Preferences' 
+                    : '⚙️ Visualization';
+            });
+
+            // Update UI controls with current preferences
+            function updateUI(prefs) {
+                document.getElementById('node-size-slider').value = prefs.nodeSize;
+                document.getElementById('node-size-value').textContent = prefs.nodeSize + 'px';
+                document.getElementById('node-auto-size').checked = prefs.nodeSizeAuto;
+                
+                document.getElementById('arrow-scale-slider').value = prefs.arrowScale;
+                document.getElementById('arrow-scale-value').textContent = prefs.arrowScale + 'x';
+                document.getElementById('arrow-scale-by-value').checked = prefs.arrowScaleByValue;
+                
+                document.getElementById('physics-preset').value = prefs.physicsPreset;
+                document.getElementById('spring-length-slider').value = prefs.springLength;
+                document.getElementById('spring-length-value').textContent = prefs.springLength + 'px';
+            }
+
+            // Set up event listeners for all controls
+            document.getElementById('node-size-slider').addEventListener('input', (e) => {
+                currentPrefs.nodeSize = parseInt(e.target.value);
+                document.getElementById('node-size-value').textContent = currentPrefs.nodeSize + 'px';
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
+            document.getElementById('node-auto-size').addEventListener('change', (e) => {
+                currentPrefs.nodeSizeAuto = e.target.checked;
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
+            document.getElementById('arrow-scale-slider').addEventListener('input', (e) => {
+                currentPrefs.arrowScale = parseFloat(e.target.value);
+                document.getElementById('arrow-scale-value').textContent = currentPrefs.arrowScale + 'x';
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
+            document.getElementById('arrow-scale-by-value').addEventListener('change', (e) => {
+                currentPrefs.arrowScaleByValue = e.target.checked;
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
+            document.getElementById('physics-preset').addEventListener('change', (e) => {
+                currentPrefs.physicsPreset = e.target.value;
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
+            document.getElementById('spring-length-slider').addEventListener('input', (e) => {
+                currentPrefs.springLength = parseInt(e.target.value);
+                document.getElementById('spring-length-value').textContent = currentPrefs.springLength + 'px';
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
+            // Re-apply preferences when graph data changes
+            network.on('stabilizationIterationsDone', () => {
+                if (currentPrefs.nodeSizeAuto) {
+                    updateAutoSizedNodes(network);
+                }
+                if (currentPrefs.arrowScaleByValue) {
+                    updateValueBasedArrows(network, currentPrefs.arrowScale);
+                }
+            });
+
+            // Return functions for external access
+            return {
+                applyPreferences: () => applyPreferences(currentPrefs),
+                updateAutoSizedNodes: () => updateAutoSizedNodes(network),
+                updateValueBasedArrows: () => updateValueBasedArrows(network, currentPrefs.arrowScale),
+                getCurrentPrefs: () => currentPrefs
+            };
+        }
+
         function initializeEditorNetwork() {
             const container = document.getElementById('editor-network');
             
@@ -694,6 +1039,12 @@
 
             // Create the vis-network
             const editorNetwork = new vis.Network(container, { nodes: new vis.DataSet(), edges: new vis.DataSet() }, options);
+            
+            // Initialize visualization preferences
+            const vizPrefs = initializeVisualizationPreferences(editorNetwork, options);
+            
+            // Store reference for graph updates
+            editorNetwork._vizPrefs = vizPrefs;
             
             // Force resize to container dimensions
             function resizeNetwork() {
@@ -775,6 +1126,17 @@
                             easingFunction: 'easeInOutQuad'
                         }
                     });
+                    
+                    // Re-apply visualization preferences after data update
+                    if (network._vizPrefs) {
+                        const prefs = network._vizPrefs.getCurrentPrefs();
+                        if (prefs.nodeSizeAuto) {
+                            network._vizPrefs.updateAutoSizedNodes();
+                        }
+                        if (prefs.arrowScaleByValue) {
+                            network._vizPrefs.updateValueBasedArrows();
+                        }
+                    }
                 }, 300);
             }
         }
