@@ -338,14 +338,47 @@ def analyze_graph(nodes, edges, parameters=None):
     return results
 ```
 
-## 📚 Available Libraries
+## 📚 Available Libraries & Browser Limitations
 
+### ✅ Available Libraries
 Your plugins have access to:
 - **NetworkX**: Graph algorithms and analysis
-- **NumPy**: Numerical computing
-- **SciPy**: Scientific computing
-- **Pandas**: Data manipulation (via Pyodide)
-- **Standard Library**: All Python standard modules
+- **Python Standard Library**: datetime, statistics, json, math, collections, etc.
+- **Typing**: Type hints and annotations
+
+### ⚠️ Browser Environment Limitations
+
+**❌ NOT Available (will cause loading errors):**
+```python
+import numpy as np      # ❌ Not available by default
+import requests         # ❌ HTTP requests not supported
+import urllib           # ❌ URL handling not supported  
+import os               # ❌ Operating system access blocked
+import subprocess       # ❌ Process execution blocked
+import socket           # ❌ Network sockets not available
+import pathlib          # ❌ File system paths not supported
+```
+
+**✅ Safe to Use:**
+```python
+import networkx as nx           # ✅ Graph analysis
+from datetime import datetime   # ✅ Date/time utilities
+from typing import List, Dict   # ✅ Type hints
+import statistics              # ✅ Statistical functions
+import json                    # ✅ JSON handling
+import math                    # ✅ Mathematical functions
+import random                  # ✅ Random number generation
+import collections             # ✅ Data structures
+```
+
+### 🔧 Why These Limitations?
+
+Plugins run in **Pyodide** (Python compiled for browsers), which:
+- Cannot access Node.js modules or system resources
+- Has security restrictions for web safety
+- Only supports pure Python or specially compiled packages
+
+**Always test your plugins** to ensure they load without import errors!
 
 ## 🚀 Plugin Sharing
 
