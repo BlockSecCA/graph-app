@@ -1604,7 +1604,9 @@ print(f"Plugin loader initialized")
                 console.error('Failed to initialize plugin system, falling back to basic mode:', error);
                 console.error('Full error details:', error.stack || error);
                 showStatus('Plugin system failed to load, using fallback analysis', 'warning');
-                await initializeFallbackAnalysis();
+                
+                // Try alternative plugin loading approach
+                await initializePluginsViaFetch();
             }
         }
         
@@ -1712,6 +1714,72 @@ execute_plugin_js('${pluginId}', '''${nodesJson}''', '''${edgesJson}''', '''${pa
             }
         }
         
+        async function initializePluginsViaFetch() {
+            console.log('Trying alternative plugin loading via fetch...');
+            
+            try {
+                // Try to load plugins directly by fetching their __init__.py files
+                const pluginNames = [
+                    'node-centrality',
+                    'community-detection', 
+                    'path-analysis',
+                    'node-importance',
+                    'edge-analysis',
+                    'basic-statistics',
+                    'causal-paths'
+                ];
+                
+                const plugins = [];
+                
+                for (const pluginName of pluginNames) {
+                    try {
+                        const initResponse = await fetch(`../py/plugins/${pluginName}/__init__.py`);
+                        if (initResponse.ok) {
+                            const initCode = await initResponse.text();
+                            
+                            // Extract ANALYSIS_INFO from the plugin
+                            const analysisMatch = initCode.match(/ANALYSIS_INFO\s*=\s*({[\s\S]*?})/);
+                            if (analysisMatch) {
+                                // Very basic extraction - this is a temporary solution
+                                const plugin = {
+                                    id: pluginName,
+                                    name: `${pluginName.charAt(0).toUpperCase() + pluginName.slice(1).replace(/-/g, ' ')} Analysis`,
+                                    description: `${pluginName} analysis plugin`,
+                                    version: '1.0.0'
+                                };
+                                plugins.push(plugin);
+                                console.log('Loaded plugin via fetch:', plugin.name);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn(`Could not load plugin ${pluginName}:`, e);
+                    }
+                }
+                
+                if (plugins.length > 0) {
+                    console.log('Successfully loaded', plugins.length, 'plugins via fetch');
+                    updatePluginDropdown(plugins);
+                    
+                    // Register minimal plugin handlers (they'll use NetworkX directly)
+                    for (const plugin of plugins) {
+                        window.graphApp.state.availablePlugins.set(plugin.id, {
+                            info: plugin,
+                            analyze: async (graph, params) => {
+                                showStatus('Direct plugin execution not yet implemented', 'warning');
+                                return { summary: 'Plugin loaded but execution not implemented' };
+                            }
+                        });
+                    }
+                    return;
+                }
+            } catch (error) {
+                console.error('Alternative plugin loading failed:', error);
+            }
+            
+            // If all else fails, use fallback
+            await initializeFallbackAnalysis();
+        }
+
         async function initializeFallbackAnalysis() {
             console.log('Initializing fallback analysis system...');
             

@@ -32,15 +32,16 @@ class PluginLoader:
         """
         plugins = []
         
-        if not path.exists(self.plugins_dir):
+        import os
+        if not os.path.exists(self.plugins_dir):
             print(f"Plugins directory {self.plugins_dir} does not exist")
             return plugins
         
         # Scan each subdirectory in plugins/
         import os
         for item in os.listdir(self.plugins_dir):
-            plugin_dir = path.join(self.plugins_dir, item)
-            if not path.isdir(plugin_dir):
+            plugin_dir = os.path.join(self.plugins_dir, item)
+            if not os.path.isdir(plugin_dir):
                 continue
                 
             if item.startswith('.'):
@@ -58,9 +59,10 @@ class PluginLoader:
     
     def _load_plugin_info(self, plugin_dir: str, plugin_name: str) -> Optional[Dict[str, Any]]:
         """Load plugin metadata from __init__.py"""
-        init_file = path.join(plugin_dir, "__init__.py")
+        import os
+        init_file = os.path.join(plugin_dir, "__init__.py")
         
-        if not path.exists(init_file):
+        if not os.path.exists(init_file):
             raise Exception(f"Plugin {plugin_name} missing __init__.py")
         
         # Add plugin directory to Python path temporarily
@@ -96,8 +98,8 @@ class PluginLoader:
         plugin_info['_path'] = plugin_dir
         
         # Verify analyze_graph exists in analysis.py file
-        analysis_file = path.join(plugin_dir, "analysis.py")
-        if not path.exists(analysis_file):
+        analysis_file = os.path.join(plugin_dir, "analysis.py")
+        if not os.path.exists(analysis_file):
             raise Exception(f"Plugin {plugin_name} missing analysis.py file")
         
         # Validate required fields
@@ -136,7 +138,8 @@ class PluginLoader:
         try:
             # Import the analysis module dynamically to avoid NetworkX dependency during discovery
             plugin_dir = plugin['_path']
-            analysis_file = path.join(plugin_dir, "analysis.py")
+            import os
+            analysis_file = os.path.join(plugin_dir, "analysis.py")
             
             # Load the analysis module with NetworkX available
             spec = importlib.util.spec_from_file_location(
