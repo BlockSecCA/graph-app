@@ -1691,13 +1691,18 @@ print(f"Plugin loader initialized")
                     console.warn('Warning: Graph has only 1 node, some analyses may not work properly');
                 }
                 
+                // Encode the analysis code as base64 to avoid quote/escape issues
+                const analysisCodeB64 = btoa(analysisCode);
+                
                 const result = window.pyodide.runPython(`
 import json
+import base64
 
 def run_plugin_analysis():
-    # Load the analysis code into Pyodide
+    # Load the analysis code into Pyodide using base64 decoding
     try:
-        exec('''${analysisCode.replace(/'''/g, "\\'''")}''', globals())
+        analysis_code = base64.b64decode("${analysisCodeB64}").decode('utf-8')
+        exec(analysis_code, globals())
         print("✅ Analysis code loaded successfully")
     except Exception as e:
         print(f"❌ Failed to load analysis code: {e}")
