@@ -1482,11 +1482,12 @@ print(f"NetworkX works: {G.number_of_nodes()} nodes")
                 console.log('🔬 Analysis system: Pyodide test passed, continuing with plugins...');
                 
                 // Use simple plugin directory for testing
-                const pluginsDirectory = 'py/plugins';
+                const pluginsDirectory = '../py/plugins';
                 console.log('🔬 Using plugins directory:', pluginsDirectory);
                 
                 // Load plugin loader module
-                const pluginLoaderResponse = await fetch('py/plugin_loader.py');
+                console.log('🔬 Loading plugin loader...');
+                const pluginLoaderResponse = await fetch('../py/plugin_loader.py');
                 const pluginLoaderCode = await pluginLoaderResponse.text();
                 window.pyodide.runPython(pluginLoaderCode);
                 console.log('Plugin loader loaded');
