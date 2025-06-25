@@ -1,15 +1,48 @@
 # Causal Graph Tool - Roadmap
 
 ## Overview
-This document outlines planned improvements to the graph editor, organized by impact and complexity. The app currently works as a basic graph editor but has significant limitations in integration, format support, and architecture.
+This document outlines planned improvements to the graph editor, organized by impact and complexity. Version 2.0 has addressed major architectural limitations, and this roadmap reflects remaining and new priorities.
 
 ---
 
-## 🔥 HIGH IMPACT - User-Facing Improvements
+## ✅ COMPLETED IN v2.0
 
-### 1. Multi-Format Import Support
-**Impact**: ⭐⭐⭐⭐⭐ | **Complexity**: ⭐⭐⭐⭐
-- **Problem**: App only reads its own JSON format, limiting usefulness
+### 🎯 **Real-Time Editor-Analysis Integration** 
+**Status**: ✅ **COMPLETED**
+- Unified interface with shared state management
+- Auto-analysis on graph changes
+- Real-time updates and synchronization
+- Eliminated file save/load workflow
+
+### 🎨 **Unified Interface Design**
+**Status**: ✅ **COMPLETED** 
+- Single-page application design
+- Eliminated iframe isolation
+- Professional context menu system
+- Responsive layout and styling
+
+### 📊 **Enhanced Graph Visualization**
+**Status**: ✅ **PARTIALLY COMPLETED**
+- Advanced physics simulation
+- Better node and edge styling
+- Interactive positioning
+- **Remaining**: Custom layouts, advanced styling options
+
+### 🔌 **Extensible Plugin Architecture**
+**Status**: ✅ **COMPLETED** (New Feature)
+- Python-based plugin system
+- Automatic plugin discovery
+- User-serviceable plugin directory
+- Comprehensive plugin development framework
+
+---
+
+## 🔥 HIGH IMPACT - Remaining Priorities
+
+### 1. Multi-Format Import Support 
+**Impact**: ⭐⭐⭐⭐⭐ | **Complexity**: ⭐⭐⭐⭐  
+**Priority**: v3.0
+- **Problem**: App only reads its own JSON format, limiting real-world usefulness
 - **Solution**: Add parsers for common graph formats
 - **Formats to support**:
   - GraphML (XML-based, used by yEd, Gephi)
@@ -18,69 +51,76 @@ This document outlines planned improvements to the graph editor, organized by im
   - GEXF (XML, used by Gephi)
   - Cytoscape.js JSON
   - NetworkX JSON variants
-- **Benefits**: Makes app useful for real-world data instead of just toy examples
+- **Benefits**: Enable import of real-world datasets and interoperability
 
-### 2. Real-Time Editor-Analysis Integration
-**Impact**: ⭐⭐⭐⭐⭐ | **Complexity**: ⭐⭐⭐
-- **Problem**: Editor and analysis are isolated - no live updates
-- **Current Workflow**: Edit → Save → Load in Analysis tab
-- **Solution**: Shared state between editor and analysis
+### 2. Advanced Visualization & Layout Options
+**Impact**: ⭐⭐⭐⭐ | **Complexity**: ⭐⭐⭐  
+**Priority**: v2.1
+- **Problem**: Limited layout and styling options for complex graphs
+- **Solution**: Advanced visualization capabilities 
 - **Features**:
-  - Auto-analysis as you edit
-  - Live influence score updates
-  - Instant path highlighting
-  - No file save/load needed
-- **Benefits**: Seamless workflow, immediate feedback
+  - Multiple layout algorithms (hierarchical, circular, grid)
+  - Advanced node/edge styling based on analysis results
+  - Custom color schemes and themes
+  - Interactive legends and controls
+  - Export to image formats (PNG, SVG)
+- **Benefits**: Better visual analysis and presentation capabilities
 
-### 3. Enhanced Graph Visualization
-**Impact**: ⭐⭐⭐⭐ | **Complexity**: ⭐⭐⭐
-- **Problem**: Basic vis-network styling, limited visual feedback
-- **Solution**: Rich visualization features
+### 3. Graph Export & Interoperability
+**Impact**: ⭐⭐⭐⭐ | **Complexity**: ⭐⭐  
+**Priority**: v2.1
+- **Problem**: Can only export to proprietary JSON format
+- **Solution**: Export to multiple standard formats
 - **Features**:
-  - Node styling by type/group
-  - Edge styling by weight/type
-  - Influence score visualization (node size/color)
-  - Path highlighting
-  - Layout algorithms (force-directed, hierarchical, circular)
-- **Benefits**: Better understanding of graph structure and analysis results
+  - Export to GraphML, DOT, CSV, GEXF
+  - High-quality image export (PNG, SVG, PDF)
+  - Analysis report export
+  - Print-friendly layouts
+- **Benefits**: Share results with other tools and stakeholders
 
 ---
 
 ## 🔧 MEDIUM IMPACT - Architecture & UX
 
-### 4. Flexible Schema System
-**Impact**: ⭐⭐⭐⭐ | **Complexity**: ⭐⭐⭐⭐
-- **Problem**: Hardcoded schema limits adaptability
-- **Current Schema**: Fixed `{id, label, type, group}` for nodes, `{source, target, type, weight}` for edges
-- **Solution**: Configurable field mappings
+### 4. Advanced Plugin Ecosystem  
+**Impact**: ⭐⭐⭐⭐ | **Complexity**: ⭐⭐⭐  
+**Priority**: v2.2
+- **Problem**: Limited built-in analysis capabilities
+- **Solution**: Expand plugin ecosystem and capabilities
 - **Features**:
-  - Schema editor/configurator
+  - Plugin marketplace/repository
+  - Community plugin sharing
+  - Plugin templates and generators
+  - Advanced visualization plugins
+  - Machine learning integration plugins
+- **Benefits**: Extensible platform for specialized analysis needs
+
+### 5. Flexible Schema System
+**Impact**: ⭐⭐⭐⭐ | **Complexity**: ⭐⭐⭐⭐  
+**Priority**: v3.0
+- **Problem**: Fixed schema limits adaptability for diverse datasets
+- **Current Schema**: Fixed `{id, label, type, group}` for nodes, `{source, target, type, weight}` for edges
+- **Solution**: Configurable field mappings and custom properties
+- **Features**:
+  - Schema editor/configurator UI
   - Field mapping for imports
   - Custom properties support
-  - Validation rules
-- **Benefits**: Works with any graph data structure
+  - Validation rules engine
+  - Template schemas for common domains
+- **Benefits**: Support for any graph data structure and domain
 
-### 5. Unified Interface Design
-**Impact**: ⭐⭐⭐ | **Complexity**: ⭐⭐⭐
-- **Problem**: Separate iframes create isolation and poor UX
-- **Current**: Bootstrap tabs with embedded iframes
-- **Solution**: Single-page application with integrated components
+### 6. Large Graph Performance
+**Impact**: ⭐⭐⭐ | **Complexity**: ⭐⭐⭐  
+**Priority**: v2.2
+- **Problem**: Performance degrades with large graphs (>1000 nodes)
+- **Solution**: Optimize for large-scale graph analysis
 - **Features**:
-  - Side-by-side editor and analysis
-  - Shared toolbar and menus
-  - Consistent styling
-  - Better responsive design
-- **Benefits**: Professional look, better user experience
-
-### 6. Graph Export Capabilities
-**Impact**: ⭐⭐⭐ | **Complexity**: ⭐⭐
-- **Problem**: Can only save to proprietary JSON format
-- **Solution**: Export to multiple formats
-- **Features**:
-  - Export to GraphML, DOT, CSV, PNG, SVG
-  - Print-friendly layouts
-  - Analysis report export
-- **Benefits**: Interoperability with other tools
+  - Graph virtualization and level-of-detail rendering
+  - Incremental analysis updates
+  - Sampling and approximation algorithms
+  - Progress indicators for long operations
+  - Memory optimization
+- **Benefits**: Handle real-world large datasets effectively
 
 ---
 
@@ -149,26 +189,47 @@ This document outlines planned improvements to the graph editor, organized by im
 
 ---
 
-## 🎯 RECOMMENDED IMPLEMENTATION ORDER
+## 🎯 RECOMMENDED IMPLEMENTATION ORDER (Post v2.0)
 
-### Phase 1: Core Integration (Weeks 1-2)
-1. **Real-Time Editor-Analysis Integration** - Biggest UX improvement
-2. **Multi-Format Import Support** - Most requested feature
+### Phase 1: User-Facing Improvements (v2.1 - Q3 2025)
+1. **Advanced Visualization & Layout Options** - Immediate user value
+2. **Graph Export & Interoperability** - High demand, moderate effort
+3. **Enhanced Error Handling** - Improve reliability
 
-### Phase 2: Security & Architecture (Weeks 3-4)
-3. **Electron Security Hardening** - Critical for production use
-4. **Enhanced Graph Visualization** - Improves analysis understanding
+### Phase 2: Scalability & Performance (v2.2 - Q4 2025) 
+4. **Large Graph Performance** - Enable real-world datasets
+5. **Advanced Plugin Ecosystem** - Community-driven growth
+6. **Electron Security Hardening** - Production readiness
 
-### Phase 3: Polish & Extensibility (Weeks 5-6)
-5. **Flexible Schema System** - Enables wider adoption
-6. **Unified Interface Design** - Professional polish
+### Phase 3: Enterprise Features (v3.0 - Q1 2026)
+7. **Multi-Format Import Support** - Major interoperability milestone
+8. **Flexible Schema System** - Domain-specific adaptability
+9. **Collaboration Features** - Multi-user support
 
-### Phase 4: Quality & Export (Ongoing)
-7. **Graph Export Capabilities** - Easy addition after core work
-8. **Enhanced Error Handling** - Continuous improvement
-9. **Performance Optimizations** - As needed
-10. **Project Structure** - When refactoring anyway
-11. **Testing Coverage** - Ongoing with each feature
+### Phase 4: Platform Maturity (v3.1+ - Ongoing)
+10. **Cloud Integration** - Remote storage and sharing
+11. **Advanced Analytics** - ML/AI integration
+12. **Performance Optimizations** - Continuous improvement
+
+## 🚀 NEW FEATURES FOR FUTURE VERSIONS
+
+### Collaboration & Sharing (v3.0+)
+- **Real-time collaboration**: Multiple users editing same graph
+- **Version control**: Graph history and branching
+- **Comments and annotations**: Discussion threads on nodes/edges
+- **Sharing and publishing**: Public/private graph repositories
+
+### Advanced Analytics (v3.1+)
+- **Machine learning integration**: Graph neural networks, clustering
+- **Statistical analysis**: Hypothesis testing, significance analysis
+- **Time series support**: Dynamic graphs over time
+- **Comparative analysis**: Multiple graph comparison tools
+
+### Enterprise Integration (v4.0+)
+- **API and SDK**: Programmatic access and integration
+- **Database connectivity**: Direct connection to graph databases
+- **Enterprise security**: SSO, RBAC, audit logging
+- **Scalable deployment**: Server-based multi-user instances
 
 ---
 
