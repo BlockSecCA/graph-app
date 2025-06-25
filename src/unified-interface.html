@@ -492,6 +492,7 @@
             <input type="file" id="file-input" accept=".json" style="display: none;">
             <button onclick="document.getElementById('file-input').click()">📂 Load Graph</button>
             <button onclick="saveGraphFile()">💾 Save Graph</button>
+            <button onclick="fitGraphToView()">🔍 Fit to View</button>
         </div>
         
         <div class="toolbar-section">
@@ -1072,6 +1073,22 @@
                 showStatus('Graph saved successfully', 'success');
             } catch (error) {
                 showStatus(`Failed to save graph: ${error.message}`, 'error');
+            }
+        }
+
+        function fitGraphToView() {
+            try {
+                if (window.graphApp && window.graphApp.networks && window.graphApp.networks.editor) {
+                    window.graphApp.networks.editor.fit();
+                    showStatus('Graph fitted to view', 'success');
+                    console.log('Graph fitted to view via toolbar button');
+                } else {
+                    showStatus('Graph network not available for fitting', 'error');
+                    console.log('Graph network not available for fitting');
+                }
+            } catch (error) {
+                console.error('Error fitting graph:', error);
+                showStatus('Failed to fit graph: ' + error.message, 'error');
             }
         }
 

@@ -76,6 +76,25 @@ const menuTemplate = [
     {
         label: 'View',
         submenu: [
+            { 
+                label: 'Fit Graph to View', 
+                accelerator: 'CmdOrCtrl+0',
+                click: () => {
+                    const win = BrowserWindow.getFocusedWindow();
+                    if (win) {
+                        // Execute the fit operation directly in the renderer
+                        win.webContents.executeJavaScript(`
+                            if (window.graphApp && window.graphApp.networks && window.graphApp.networks.editor) {
+                                window.graphApp.networks.editor.fit();
+                                console.log('Graph fitted to view via menu');
+                            } else {
+                                console.log('Graph network not available for fitting');
+                            }
+                        `);
+                    }
+                }
+            },
+            { type: 'separator' },
             { label: 'Toggle Developer Tools', role: 'toggledevtools' }
         ]
     },
