@@ -1697,7 +1697,11 @@ print(f"Plugin loader initialized")
                 }
                 
                 // Encode the analysis code as base64 to avoid quote/escape issues
-                const analysisCodeB64 = btoa(analysisCode);
+                // Use proper UTF-8 to base64 encoding
+                function utf8ToBase64(str) {
+                    return btoa(unescape(encodeURIComponent(str)));
+                }
+                const analysisCodeB64 = utf8ToBase64(analysisCode);
                 
                 const result = window.pyodide.runPython(`
 import json
