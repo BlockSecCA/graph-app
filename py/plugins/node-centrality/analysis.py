@@ -7,7 +7,6 @@ Calculates various centrality measures to identify important nodes in the graph.
 import networkx as nx
 from datetime import datetime
 from typing import List, Dict, Any
-import numpy as np
 
 
 class AnalysisError(Exception):
