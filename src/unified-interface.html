@@ -1436,52 +1436,54 @@
             });
         }
 
-        // Initialize Pyodide at global scope like the old working version
+        // Test if Pyodide itself is the issue or something else
         let pyodideReadyPromise = null;
         
-        async function initializePyodide() {
-            console.log('Loading Pyodide (like old working version)...');
-            const pyodide = await loadPyodide();
-            console.log('Pyodide loaded successfully');
-            
-            await pyodide.loadPackage(['networkx']);
-            console.log('NetworkX loaded successfully');
-            
-            return pyodide;
+        async function testBasicPyodide() {
+            try {
+                console.log('🧪 Testing: Basic Pyodide loading...');
+                const pyodide = await loadPyodide();
+                console.log('✅ SUCCESS: Pyodide loaded');
+                
+                console.log('🧪 Testing: Basic Python execution...');
+                pyodide.runPython('print("Hello from Python!")');
+                console.log('✅ SUCCESS: Python execution works');
+                
+                console.log('🧪 Testing: NetworkX package loading...');
+                await pyodide.loadPackage(['networkx']);
+                console.log('✅ SUCCESS: NetworkX loaded');
+                
+                console.log('🧪 Testing: NetworkX import...');
+                pyodide.runPython(`
+import networkx as nx
+G = nx.Graph()
+G.add_edge(1, 2)
+print(f"NetworkX works: {G.number_of_nodes()} nodes")
+                `);
+                console.log('✅ SUCCESS: NetworkX import and usage works');
+                
+                return pyodide;
+            } catch (error) {
+                console.error('❌ FAILED: Pyodide test failed at:', error.message);
+                console.error('Full error:', error);
+                throw error;
+            }
         }
         
-        // Start loading Pyodide immediately
-        pyodideReadyPromise = initializePyodide();
+        // Start the basic test immediately
+        pyodideReadyPromise = testBasicPyodide();
         
         async function initializeAnalysisSystem() {
-            console.log('Initializing analysis system with Python plugins...');
+            console.log('🔬 Analysis system: Waiting for Pyodide test results...');
             
             try {
-                // Get plugins directory - use development path for now, production will override
-                let pluginsDirectory = 'py/plugins';
-                
-                if (window.require) {
-                    try {
-                        const { ipcRenderer } = window.require('electron');
-                        const userPluginsDir = await ipcRenderer.invoke('get-plugins-directory');
-                        
-                        // In packaged apps, use user directory; in development, use source directory
-                        if (process.env.NODE_ENV === 'production' || !require('fs').existsSync(pluginsDirectory)) {
-                            pluginsDirectory = userPluginsDir;
-                            console.log('Using production plugins directory:', pluginsDirectory);
-                        } else {
-                            console.log('Using development plugins directory:', pluginsDirectory);
-                        }
-                    } catch (error) {
-                        console.log('Using fallback plugins directory:', pluginsDirectory);
-                    }
-                } else {
-                    console.log('Using web mode plugins directory:', pluginsDirectory);
-                }
-                
-                // Wait for Pyodide to be ready (loaded at global scope)
+                // Wait for Pyodide test to complete
                 window.pyodide = await pyodideReadyPromise;
-                console.log('Using pre-loaded Pyodide instance');
+                console.log('🔬 Analysis system: Pyodide test passed, continuing with plugins...');
+                
+                // Use simple plugin directory for testing
+                const pluginsDirectory = 'py/plugins';
+                console.log('🔬 Using plugins directory:', pluginsDirectory);
                 
                 // Load plugin loader module
                 const pluginLoaderResponse = await fetch('py/plugin_loader.py');
