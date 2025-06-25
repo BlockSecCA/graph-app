@@ -1480,18 +1480,22 @@
                 pyodide.runPython('print("Hello from Python!")');
                 console.log('✅ SUCCESS: Python execution works');
                 
-                console.log('🧪 Testing: NetworkX package loading...');
-                await pyodide.loadPackage(['networkx']);
-                console.log('✅ SUCCESS: NetworkX loaded');
+                console.log('🧪 Testing: Required packages loading...');
+                await pyodide.loadPackage(['networkx', 'scipy', 'numpy']);
+                console.log('✅ SUCCESS: NetworkX, SciPy, and NumPy loaded');
                 
-                console.log('🧪 Testing: NetworkX import...');
+                console.log('🧪 Testing: Package imports...');
                 pyodide.runPython(`
 import networkx as nx
+import scipy
+import numpy as np
 G = nx.Graph()
 G.add_edge(1, 2)
 print(f"NetworkX works: {G.number_of_nodes()} nodes")
+print(f"SciPy version: {scipy.__version__}")
+print(f"NumPy version: {np.__version__}")
                 `);
-                console.log('✅ SUCCESS: NetworkX import and usage works');
+                console.log('✅ SUCCESS: All packages import and work correctly');
                 
                 return pyodide;
             } catch (error) {
@@ -1665,11 +1669,12 @@ print(f"Plugin loader initialized")
                 const analysisCode = await analysisResponse.text();
                 console.log('✅ Loaded analysis code for', pluginId);
                 
-                // Ensure NetworkX is loaded
-                if (!window.networkXLoaded) {
-                    console.log('Loading NetworkX for plugin execution...');
-                    await window.pyodide.loadPackage(['networkx']);
-                    window.networkXLoaded = true;
+                // Ensure required packages are loaded
+                if (!window.packagesLoaded) {
+                    console.log('Loading required packages for plugin execution...');
+                    await window.pyodide.loadPackage(['networkx', 'scipy', 'numpy']);
+                    window.packagesLoaded = true;
+                    console.log('✅ Loaded NetworkX, SciPy, and NumPy');
                 }
                 
                 // Execute the plugin analysis in Pyodide
@@ -1774,12 +1779,12 @@ run_plugin_analysis()
 
         async function executePlugin(pluginId, graph, parameters) {
             try {
-                // Ensure NetworkX is loaded before plugin execution
-                if (!window.networkXLoaded) {
-                    console.log('Loading NetworkX for plugin execution...');
-                    await window.pyodide.loadPackage(['networkx']);
-                    window.networkXLoaded = true;
-                    console.log('NetworkX loaded successfully');
+                // Ensure required packages are loaded before plugin execution
+                if (!window.packagesLoaded) {
+                    console.log('Loading required packages for plugin execution...');
+                    await window.pyodide.loadPackage(['networkx', 'scipy', 'numpy']);
+                    window.packagesLoaded = true;
+                    console.log('✅ Loaded NetworkX, SciPy, and NumPy');
                 }
                 
                 const nodesJson = JSON.stringify(graph.nodes);
