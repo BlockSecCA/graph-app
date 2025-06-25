@@ -1094,12 +1094,28 @@
             
             // Handle overlay clicks - close modal if clicking overlay, prevent propagation otherwise
             overlay.addEventListener('click', (e) => {
+                console.log('Overlay click event - target:', e.target, 'overlay:', overlay);
                 if (e.target === overlay) {
                     // Clicking the overlay itself (not the dialog)
+                    console.log('Clicking overlay background - closing modal');
                     closeModal();
                 } else {
                     // Clicking something inside the dialog - prevent propagation
+                    console.log('Clicking inside dialog - preventing propagation');
                     e.stopPropagation();
+                }
+            });
+            
+            // Add debugging for any other events that might interfere
+            document.addEventListener('keydown', function debugKeyHandler(e) {
+                if (overlay && overlay.parentNode) {
+                    console.log('Global keydown while modal open:', e.key, e.target);
+                }
+            });
+            
+            document.addEventListener('click', function debugClickHandler(e) {
+                if (overlay && overlay.parentNode) {
+                    console.log('Global click while modal open:', e.target, 'closest modal:', e.target.closest('.modal-overlay'));
                 }
             });
             
@@ -1107,13 +1123,39 @@
             setTimeout(() => {
                 const input = document.getElementById('modal-node-id');
                 if (input) {
+                    console.log('Attempting to focus input...');
+                    console.log('Input element:', input);
+                    console.log('Input visible:', input.offsetWidth > 0 && input.offsetHeight > 0);
+                    console.log('Input disabled:', input.disabled);
+                    console.log('Input readonly:', input.readOnly);
+                    console.log('Document activeElement before focus:', document.activeElement);
+                    
                     input.focus();
                     input.select(); // Select text to make it obvious it's focused
+                    
+                    console.log('Document activeElement after focus:', document.activeElement);
+                    console.log('Input has focus:', document.activeElement === input);
                     console.log('Input focused and selected successfully');
                     
-                    // Test if input works by adding a test listener
+                    // Test if input works by adding multiple event listeners
                     input.addEventListener('input', (e) => {
                         console.log('Input event detected:', e.target.value);
+                    });
+                    
+                    input.addEventListener('keydown', (e) => {
+                        console.log('Keydown event detected:', e.key, e.code);
+                    });
+                    
+                    input.addEventListener('keyup', (e) => {
+                        console.log('Keyup event detected:', e.key, e.code);
+                    });
+                    
+                    input.addEventListener('focus', (e) => {
+                        console.log('Focus event detected');
+                    });
+                    
+                    input.addEventListener('blur', (e) => {
+                        console.log('Blur event detected');
                     });
                     
                 } else {
