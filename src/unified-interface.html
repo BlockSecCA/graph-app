@@ -1462,30 +1462,17 @@
                     console.log('Using web mode plugins directory:', pluginsDirectory);
                 }
                 
-                // Load Pyodide
+                // Test minimal Pyodide loading
+                console.log('Testing minimal Pyodide initialization...');
                 window.pyodide = await loadPyodide();
-                console.log('Pyodide loaded successfully');
+                console.log('✅ Pyodide loaded successfully');
                 
-                // Note: NetworkX loading deferred until plugin execution to avoid import conflicts
-                console.log('Skipping NetworkX pre-loading to avoid import conflicts');
+                // Test basic Python execution
+                window.pyodide.runPython('print("Hello from Python!")');
+                console.log('✅ Basic Python execution works');
                 
-                // Load plugin loader module
-                const pluginLoaderResponse = await fetch('py/plugin_loader.py');
-                const pluginLoaderCode = await pluginLoaderResponse.text();
-                window.pyodide.runPython(pluginLoaderCode);
-                console.log('Plugin loader loaded');
-                
-                // Set plugins directory in Python
-                window.pyodide.runPython(`
-import js
-_plugin_loader = None
-from plugin_loader import PluginLoader
-_plugin_loader = PluginLoader("${pluginsDirectory.replace(/\\/g, '/')}")
-print(f"Plugin loader initialized with directory: ${pluginsDirectory.replace(/\\/g, '/')}")
-                `);
-                
-                // Discover plugins
-                await discoverPlugins();
+                // Skip plugin loading for now to isolate the issue
+                console.log('⚠️ Skipping plugin loading to test basic Pyodide functionality');
                 
                 console.log('Plugin-based analysis system initialized');
                 
