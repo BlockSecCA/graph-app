@@ -573,71 +573,13 @@
                     ipcRenderer.on('menu-new-graph', () => {
                         console.log('Menu: New Graph clicked');
                         if (confirm('Create a new graph? This will clear the current graph.')) {
-                            // Complete reset to app launch state
-                            console.log('Performing complete reset to app launch state...');
+                            // Simple approach: just clear the graph data (back to working version)
+                            console.log('Creating new graph...');
                             
-                            // 1. Destroy existing network completely
-                            if (window.editorNetwork) {
-                                window.editorNetwork.destroy();
-                                window.editorNetwork = null;
-                            }
+                            // Clear the graph through the normal shared state mechanism
+                            window.graphApp.updateGraph({ nodes: [], edges: [] });
                             
-                            // 2. Completely reset shared state to initial values
-                            window.graphApp.state.currentGraph = { nodes: [], edges: [] };
-                            window.graphApp.state.analysisResults = null;
-                            window.graphApp.state.isAnalyzing = false;
-                            window.graphApp.state.selectedPlugin = 'causal-paths';
-                            
-                            // 3. Clear any existing UI state
-                            const existingModals = document.querySelectorAll('.modal-overlay');
-                            existingModals.forEach(modal => modal.remove());
-                            
-                            // 4. Clear analysis panel display
-                            const analysisResults = document.getElementById('analysis-results');
-                            if (analysisResults) {
-                                analysisResults.innerHTML = '<p class="text-center text-muted">Select a plugin and run analysis to see results here.</p>';
-                            }
-                            
-                            // 5. Reset stats display
-                            updateStats({ nodes: [], edges: [] });
-                            
-                            // 6. Recreate network from scratch (identical to app launch)
-                            const container = document.getElementById('editor-container');
-                            const options = {
-                                physics: {
-                                    enabled: true,
-                                    stabilization: { enabled: true, iterations: 100 },
-                                    barnesHut: { gravitationalConstant: -2000, springConstant: 0.001, springLength: 200 }
-                                },
-                                nodes: { shape: 'dot', size: 15, font: { size: 14 }, borderWidth: 2 },
-                                edges: { arrows: 'to', font: { size: 12, align: 'middle' }, smooth: { type: 'cubicBezier', forceDirection: 'horizontal' } },
-                                interaction: { hover: true, selectConnectedEdges: false },
-                                autoResize: true, width: '100%', height: '100%'
-                            };
-                            
-                            // Create fresh network (identical to app startup)
-                            window.editorNetwork = new vis.Network(container, { 
-                                nodes: new vis.DataSet(), 
-                                edges: new vis.DataSet() 
-                            }, options);
-                            
-                            // Re-setup all event handlers
-                            window.graphApp.registerNetwork('editor', window.editorNetwork);
-                            window.graphApp.addEventListener('graphUpdated', (e) => {
-                                updateNetworkData(window.editorNetwork, e.detail.graph);
-                                updateStats(e.detail.graph);
-                            });
-                            setupContextMenus(window.editorNetwork);
-                            
-                            // Force resize
-                            setTimeout(() => {
-                                const rect = container.getBoundingClientRect();
-                                window.editorNetwork.setSize(rect.width + 'px', rect.height + 'px');
-                                window.editorNetwork.fit();
-                            }, 100);
-                            
-                            showStatus('Application reset to fresh launch state', 'success');
-                            console.log('Complete reset finished - identical to app launch');
+                            showStatus('New graph created', 'info');
                         }
                     });
                     
