@@ -3,7 +3,7 @@
 ## Project Overview
 **graph-app** - Professional Electron-based causal graph editor and analysis tool
 - **Repository**: https://github.com/BlockSecCA/graph-app
-- **Version**: 2.1.1 (Visualization preferences bug fixes and enhancements)
+- **Version**: 2.1.2 (Graph navigation and interaction fixes)
 - **Tech Stack**: Electron v25.0.0, Node.js v20.19.2, vis-network, Pyodide, NetworkX
 - **Purpose**: Modern unified interface for graph editing with extensible Python-based analysis
 
@@ -97,7 +97,7 @@ main.js (Electron main process)
 - ✅ **Error Handling**: Comprehensive debugging and graceful fallbacks
 - ✅ **Template System**: Plugin development template remains clean and user-friendly
 
-**Status**: 🎉 **v2.1.1 COMPLETE** - All visualization preferences bugs fixed and enhancements added. Advanced preferences system now fully operational with robust slider controls, reset functionality, unified arrow scaling, and skinny arrow option. Addresses GitHub issues #39 and #40 completely.
+**Status**: 🎉 **v2.1.2 COMPLETE** - Critical graph navigation and interaction fixes deployed. All core graph interaction features (zoom, pan, drag) restored to full functionality. Visualization preferences system remains robust with all previous enhancements. Addresses GitHub issues #39, #40, and #41 completely.
 
 ## v2.1.0 New Features ✅
 - ✅ **Visualization Preferences Panel**: Collapsible UI in graph editor header
@@ -114,6 +114,13 @@ main.js (Electron main process)
 - ✅ **Unified Arrow Scaling**: Head and body now scale together as single element
 - ✅ **Skinny Arrow Option**: Checkbox for thinner arrow style override
 - ✅ **Robust State Management**: Proper individual property resets when switching modes
+
+## v2.1.2 Navigation & Interaction Fixes ✅
+- ✅ **Scroll Wheel Zoom**: Restored full zoom functionality with mouse wheel
+- ✅ **Pan/Drag on Empty Space**: Fixed click-and-drag navigation on canvas
+- ✅ **Hover Sensitivity**: Reduced unintended graph movement on mouse hover
+- ✅ **Node Dragging**: Maintained individual node positioning capability
+- ✅ **Interaction Optimization**: Enhanced tooltip delays and navigation controls
 
 ## v2.1 Series Complete ✅
 The visualization enhancement vision is now fully realized:

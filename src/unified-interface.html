@@ -1109,7 +1109,18 @@
                 },
                 interaction: {
                     hover: true,
-                    selectConnectedEdges: false
+                    hoverConnectedEdges: false,  // Prevent hover from affecting edges
+                    selectConnectedEdges: false,
+                    zoomView: true,              // Enable scroll wheel zoom
+                    dragView: true,              // Enable pan/drag on empty space
+                    dragNodes: true,             // Enable node dragging
+                    navigationButtons: false,    // Disable navigation buttons that might interfere
+                    keyboard: {
+                        enabled: false           // Disable keyboard shortcuts to prevent conflicts
+                    },
+                    tooltipDelay: 200,           // Add delay to reduce hover sensitivity
+                    hideEdgesOnDrag: false,      // Keep edges visible during drag
+                    hideNodesOnDrag: false       // Keep nodes visible during drag
                 },
                 // Force vis-network to use full container size
                 autoResize: true,
