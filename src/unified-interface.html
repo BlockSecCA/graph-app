@@ -710,11 +710,30 @@
                 network.setData({ nodes, edges });
                 console.log('Created fresh DataSets for empty graph');
                 
-                // Prevent canvas from capturing focus after setData
+                // Prevent canvas from capturing focus and events after setData
                 const canvas = network.canvas.frame.canvas;
                 if (canvas) {
                     canvas.setAttribute('tabindex', '-1');
+                    
+                    // Also remove any global keyboard event listeners that might interfere
+                    canvas.style.pointerEvents = 'auto'; // Keep pointer events
                     console.log('Disabled canvas focus after setData');
+                    
+                    // Disable network keyboard interaction temporarily
+                    try {
+                        network.setOptions({
+                            interaction: {
+                                hover: true,
+                                selectConnectedEdges: false,
+                                keyboard: {
+                                    enabled: false
+                                }
+                            }
+                        });
+                        console.log('Disabled network keyboard interaction after setData');
+                    } catch (e) {
+                        console.log('Could not disable network keyboard interaction:', e);
+                    }
                 }
             } else {
                 // For non-empty graphs, update existing DataSets
@@ -1128,8 +1147,30 @@
                     setTimeout(focusInput, 50);
                     setTimeout(focusInput, 100);
                     
+                    // Debug why input events aren't firing after New Graph
+                    input.addEventListener('input', (e) => {
+                        console.log('✅ Input event fired:', e.target.value);
+                    });
+                    
+                    input.addEventListener('keydown', (e) => {
+                        console.log('⌨️ Keydown on input:', e.key, 'target:', e.target);
+                        console.log('   Input value before:', input.value);
+                        console.log('   Input focused:', document.activeElement === input);
+                        console.log('   Event defaultPrevented:', e.defaultPrevented);
+                    });
+                    
+                    input.addEventListener('keypress', (e) => {
+                        console.log('⌨️ Keypress on input:', e.key, 'char:', e.char);
+                        console.log('   Event defaultPrevented:', e.defaultPrevented);
+                    });
+                    
+                    input.addEventListener('beforeinput', (e) => {
+                        console.log('📝 BeforeInput event:', e.inputType, 'data:', e.data);
+                    });
+                    
                     // If the blur is caused by the canvas stealing focus, reclaim it
                     input.addEventListener('blur', (e) => {
+                        console.log('👋 Input lost focus, relatedTarget:', e.relatedTarget);
                         if (e.relatedTarget && e.relatedTarget.tagName === 'CANVAS') {
                             setTimeout(() => {
                                 input.focus();
