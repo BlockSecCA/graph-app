@@ -1069,16 +1069,31 @@
             
             console.log('Modal dialog created and added to DOM');
             
+            // Prevent overlay from blocking input events to dialog
+            overlay.addEventListener('click', (e) => {
+                // Only close if clicking the overlay itself, not the dialog
+                if (e.target === overlay) {
+                    closeModal();
+                }
+            });
+            
             // Focus the first input with better error handling
             setTimeout(() => {
                 const input = document.getElementById('modal-node-id');
                 if (input) {
                     input.focus();
-                    console.log('Input focused successfully');
+                    input.select(); // Select text to make it obvious it's focused
+                    console.log('Input focused and selected successfully');
+                    
+                    // Test if input works by adding a test listener
+                    input.addEventListener('input', (e) => {
+                        console.log('Input event detected:', e.target.value);
+                    });
+                    
                 } else {
                     console.error('Could not find modal-node-id input element');
                 }
-            }, 100);
+            }, 150);
             
             // Handle enter key
             dialog.addEventListener('keydown', (e) => {
@@ -1088,9 +1103,12 @@
             });
             
             window.closeModal = () => {
-                document.body.removeChild(overlay);
+                if (overlay && overlay.parentNode) {
+                    document.body.removeChild(overlay);
+                }
                 delete window.closeModal;
                 delete window.createNode;
+                console.log('Modal closed and cleaned up');
             };
             
             window.createNode = () => {
