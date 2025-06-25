@@ -579,6 +579,13 @@
                             // Clear the graph through the normal shared state mechanism
                             window.graphApp.updateGraph({ nodes: [], edges: [] });
                             
+                            // Debug: Check if analysis is triggered
+                            console.log('Analysis should be triggered automatically...');
+                            setTimeout(() => {
+                                console.log('Current analysis results:', window.graphApp.state.analysisResults);
+                                console.log('Is analyzing:', window.graphApp.state.isAnalyzing);
+                            }, 500);
+                            
                             showStatus('New graph created', 'info');
                         }
                     });
