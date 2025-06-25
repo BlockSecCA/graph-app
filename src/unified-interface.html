@@ -575,9 +575,6 @@
                         if (confirm('Create a new graph? This will clear the current graph.')) {
                             window.graphApp.updateGraph({ nodes: [], edges: [] });
                             showStatus('New graph created', 'info');
-                            
-                            // Mark that we just did a new graph operation
-                            window.graphApp._newGraphTimestamp = Date.now();
                         }
                     });
                     
@@ -702,14 +699,26 @@
         function updateNetworkData(network, graphData) {
             console.log('Updating network with graph data:', graphData);
             
-            // Get existing data sets or create new ones if they don't exist
-            const currentData = network.body.data;
-            const nodes = currentData.nodes;
-            const edges = currentData.edges;
+            // For empty graphs (like New Graph), create fresh DataSets to avoid clearing issues
+            const isEmpty = graphData.nodes.length === 0 && graphData.edges.length === 0;
             
-            // Clear existing data
-            nodes.clear();
-            edges.clear();
+            let nodes, edges;
+            if (isEmpty) {
+                // Create fresh DataSets for empty graphs (same as app startup)
+                nodes = new vis.DataSet();
+                edges = new vis.DataSet();
+                network.setData({ nodes, edges });
+                console.log('Created fresh DataSets for empty graph');
+            } else {
+                // For non-empty graphs, update existing DataSets
+                const currentData = network.body.data;
+                nodes = currentData.nodes;
+                edges = currentData.edges;
+                
+                // Clear existing data
+                nodes.clear();
+                edges.clear();
+            }
             
             // Add new nodes
             const nodeData = graphData.nodes.map((node, index) => {
@@ -1058,16 +1067,6 @@
         function showAddNodeDialog(canvasPosition) {
             console.log('showAddNodeDialog called with position:', canvasPosition);
             
-            // Check if we're too soon after a New Graph operation
-            const timeSinceNewGraph = window.graphApp._newGraphTimestamp ? 
-                Date.now() - window.graphApp._newGraphTimestamp : Infinity;
-            
-            if (timeSinceNewGraph < 2000) { // Less than 2 seconds
-                console.log('Too soon after New Graph, adding delay for network stabilization');
-                setTimeout(() => showAddNodeDialog(canvasPosition), 2000 - timeSinceNewGraph);
-                return;
-            }
-            
             // Remove any existing modals first
             const existingModals = document.querySelectorAll('.modal-overlay');
             existingModals.forEach(modal => modal.remove());
@@ -1305,16 +1304,6 @@
         }
         
         function showAddEdgeDialog() {
-            // Check if we're too soon after a New Graph operation
-            const timeSinceNewGraph = window.graphApp._newGraphTimestamp ? 
-                Date.now() - window.graphApp._newGraphTimestamp : Infinity;
-            
-            if (timeSinceNewGraph < 2000) { // Less than 2 seconds
-                console.log('Too soon after New Graph, adding delay for network stabilization');
-                setTimeout(() => showAddEdgeDialog(), 2000 - timeSinceNewGraph);
-                return;
-            }
-            
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
             
