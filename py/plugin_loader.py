@@ -5,25 +5,23 @@ Discovers and loads analysis plugins from the py/plugins/ directory.
 Provides a JavaScript interface for plugin registration and execution.
 """
 
-import os
 import sys
 import importlib.util
 import json
 import traceback
-from pathlib import Path
 from typing import Dict, List, Any, Optional
+
+# Use os.path instead of pathlib for Pyodide compatibility
+import os.path as path
 
 
 class PluginLoader:
     """Manages discovery and loading of analysis plugins"""
     
     def __init__(self, plugins_dir: str = "py/plugins"):
-        self.plugins_dir = Path(plugins_dir)
+        self.plugins_dir = plugins_dir
         self.loaded_plugins = {}
         self.plugin_errors = {}
-        
-        # Ensure plugins directory exists
-        self.plugins_dir.mkdir(parents=True, exist_ok=True)
     
     def discover_plugins(self) -> List[Dict[str, Any]]:
         """
@@ -34,78 +32,79 @@ class PluginLoader:
         """
         plugins = []
         
-        if not self.plugins_dir.exists():
+        if not path.exists(self.plugins_dir):
             print(f"Plugins directory {self.plugins_dir} does not exist")
             return plugins
         
         # Scan each subdirectory in plugins/
-        for plugin_dir in self.plugins_dir.iterdir():
-            if not plugin_dir.is_dir():
+        import os
+        for item in os.listdir(self.plugins_dir):
+            plugin_dir = path.join(self.plugins_dir, item)
+            if not path.isdir(plugin_dir):
                 continue
                 
-            if plugin_dir.name.startswith('.'):
+            if item.startswith('.'):
                 continue  # Skip hidden directories
                 
             try:
-                plugin_info = self._load_plugin_info(plugin_dir)
+                plugin_info = self._load_plugin_info(plugin_dir, item)
                 if plugin_info:
                     plugins.append(plugin_info)
             except Exception as e:
-                self.plugin_errors[plugin_dir.name] = str(e)
-                print(f"Error loading plugin {plugin_dir.name}: {e}")
+                self.plugin_errors[item] = str(e)
+                print(f"Error loading plugin {item}: {e}")
         
         return plugins
     
-    def _load_plugin_info(self, plugin_dir: Path) -> Optional[Dict[str, Any]]:
+    def _load_plugin_info(self, plugin_dir: str, plugin_name: str) -> Optional[Dict[str, Any]]:
         """Load plugin metadata from __init__.py"""
-        init_file = plugin_dir / "__init__.py"
+        init_file = path.join(plugin_dir, "__init__.py")
         
-        if not init_file.exists():
-            raise Exception(f"Plugin {plugin_dir.name} missing __init__.py")
+        if not path.exists(init_file):
+            raise Exception(f"Plugin {plugin_name} missing __init__.py")
         
         # Add plugin directory to Python path temporarily
-        plugin_dir_str = str(plugin_dir.absolute())
-        if plugin_dir_str not in sys.path:
-            sys.path.insert(0, plugin_dir_str)
+        if plugin_dir not in sys.path:
+            sys.path.insert(0, plugin_dir)
         
         try:
             # Load the plugin module
             spec = importlib.util.spec_from_file_location(
-                f"plugin_{plugin_dir.name}", 
+                f"plugin_{plugin_name}", 
                 init_file
             )
             
             if spec is None or spec.loader is None:
-                raise Exception(f"Could not load plugin spec for {plugin_dir.name}")
+                raise Exception(f"Could not load plugin spec for {plugin_name}")
             
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
         finally:
             # Remove from path to avoid conflicts
-            if plugin_dir_str in sys.path:
-                sys.path.remove(plugin_dir_str)
+            if plugin_dir in sys.path:
+                sys.path.remove(plugin_dir)
         
         # Extract plugin info
         if not hasattr(module, 'ANALYSIS_INFO'):
-            raise Exception(f"Plugin {plugin_dir.name} missing ANALYSIS_INFO")
+            raise Exception(f"Plugin {plugin_name} missing ANALYSIS_INFO")
         
         # Note: We don't check for analyze_graph here since it may import NetworkX
         # which isn't available in system Python, only in Pyodide
         
         plugin_info = module.ANALYSIS_INFO.copy()
         plugin_info['_module'] = module
-        plugin_info['_path'] = str(plugin_dir)
+        plugin_info['_path'] = plugin_dir
         
         # Verify analyze_graph exists in analysis.py file
-        analysis_file = plugin_dir / "analysis.py"
-        if not analysis_file.exists():
-            raise Exception(f"Plugin {plugin_dir.name} missing analysis.py file")
+        analysis_file = path.join(plugin_dir, "analysis.py")
+        if not path.exists(analysis_file):
+            raise Exception(f"Plugin {plugin_name} missing analysis.py file")
         
         # Validate required fields
         required_fields = ['id', 'name', 'description', 'version']
         for field in required_fields:
             if field not in plugin_info:
-                raise Exception(f"Plugin {plugin_dir.name} missing required field: {field}")
+                raise Exception(f"Plugin {plugin_name} missing required field: {field}")
         
         self.loaded_plugins[plugin_info['id']] = plugin_info
         return plugin_info
@@ -136,8 +135,8 @@ class PluginLoader:
         
         try:
             # Import the analysis module dynamically to avoid NetworkX dependency during discovery
-            plugin_dir = Path(plugin['_path'])
-            analysis_file = plugin_dir / "analysis.py"
+            plugin_dir = plugin['_path']
+            analysis_file = path.join(plugin_dir, "analysis.py")
             
             # Load the analysis module with NetworkX available
             spec = importlib.util.spec_from_file_location(
