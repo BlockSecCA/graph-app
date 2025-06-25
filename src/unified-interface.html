@@ -1677,25 +1677,60 @@ print(f"Plugin loader initialized")
                 const edgesJson = JSON.stringify(graph.edges);
                 const paramsJson = JSON.stringify(parameters || {});
                 
+                console.log('📊 Graph data for plugin:');
+                console.log('  Nodes:', graph.nodes.length, 'items');
+                console.log('  Edges:', graph.edges.length, 'items');
+                if (graph.nodes.length > 0) console.log('  First node:', graph.nodes[0]);
+                if (graph.edges.length > 0) console.log('  First edge:', graph.edges[0]);
+                
+                // Basic validation
+                if (graph.nodes.length === 0) {
+                    throw new Error('No nodes in graph - cannot run analysis');
+                }
+                if (graph.nodes.length < 2) {
+                    console.warn('Warning: Graph has only 1 node, some analyses may not work properly');
+                }
+                
                 const result = window.pyodide.runPython(`
-# Load the analysis code into Pyodide
-exec('''${analysisCode.replace(/'''/g, "\\'''")}''')
-
-# Parse the input data
 import json
-nodes = json.loads('''${nodesJson}''')
-edges = json.loads('''${edgesJson}''')
-params = json.loads('''${paramsJson}''')
+
+# Load the analysis code into Pyodide
+try:
+    exec('''${analysisCode.replace(/'''/g, "\\'''")}''')
+    print("✅ Analysis code loaded successfully")
+except Exception as e:
+    print(f"❌ Failed to load analysis code: {e}")
+    json.dumps({"error": f"Failed to load analysis code: {e}", "summary": f"Code loading failed: {e}"})
+
+# Parse the input data  
+try:
+    nodes = json.loads('''${nodesJson}''')
+    edges = json.loads('''${edgesJson}''')
+    params = json.loads('''${paramsJson}''')
+    print(f"✅ Parsed {len(nodes)} nodes and {len(edges)} edges")
+except Exception as e:
+    print(f"❌ JSON parsing failed: {e}")
+    json.dumps({"error": f"JSON parsing failed: {e}", "summary": f"Data parsing failed: {e}"})
 
 # Execute the analysis
 try:
-    result = analyze_graph(nodes, edges, params)
-    print(f"Plugin ${pluginId} executed successfully")
-    json.dumps(result)
+    analysis_result = analyze_graph(nodes, edges, params)
+    print(f"✅ Plugin ${pluginId} executed successfully")
+    json.dumps(analysis_result)
 except Exception as e:
-    print(f"Plugin ${pluginId} execution failed: {e}")
-    json.dumps({"error": str(e), "summary": f"Plugin execution failed: {e}"})
+    import traceback
+    error_details = traceback.format_exc()
+    print(f"❌ Plugin ${pluginId} execution failed: {e}")
+    print("Full traceback:")
+    print(error_details)
+    json.dumps({"error": str(e), "summary": f"Plugin execution failed: {e}", "traceback": error_details})
                 `);
+                
+                console.log('🐍 Python result:', result);
+                
+                if (!result || result === 'undefined') {
+                    throw new Error('Plugin execution returned no result');
+                }
                 
                 const response = JSON.parse(result);
                 
