@@ -247,6 +247,21 @@
             font-size: 13px;
         }
 
+        .pref-reset-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .pref-reset-btn:hover {
+            background: #c0392b;
+        }
+
 
         .vis-network {
             flex: 1;
@@ -626,6 +641,11 @@
                             <input type="checkbox" id="arrow-scale-by-value" class="pref-checkbox">
                             <span style="font-size: 12px; color: #777;">Arrow size reflects edge weight</span>
                         </div>
+                        <div class="pref-control">
+                            <label class="pref-label">Skinny arrows:</label>
+                            <input type="checkbox" id="arrow-skinny-mode" class="pref-checkbox">
+                            <span style="font-size: 12px; color: #777;">Use thinner arrow style</span>
+                        </div>
                     </div>
                     
                     <div class="pref-section">
@@ -643,6 +663,10 @@
                             <input type="range" id="spring-length-slider" class="pref-slider" min="50" max="200" step="5" value="95">
                             <span id="spring-length-value" class="pref-value">95px</span>
                         </div>
+                    </div>
+                    
+                    <div style="text-align: center; border-top: 1px solid #ddd; padding-top: 15px;">
+                        <button id="reset-defaults-btn" class="pref-reset-btn">🔄 Reset to Defaults</button>
                     </div>
                 </div>
                 
@@ -795,6 +819,7 @@
                 nodeSizeAuto: false,
                 arrowScale: 1.2,
                 arrowScaleByValue: false,
+                arrowSkinnyMode: false,
                 springLength: 95,
                 physicsPreset: 'normal'
             };
@@ -824,7 +849,8 @@
                                 enabled: true, 
                                 scaleFactor: prefs.arrowScale 
                             } 
-                        }
+                        },
+                        width: prefs.arrowScale * (prefs.arrowSkinnyMode ? 1 : 2)  // Skinny mode uses 1, normal uses 2
                     },
                     physics: {
                         ...options.physics,
@@ -847,14 +873,20 @@
 
                 network.setOptions(newOptions);
 
-                // Handle auto-sizing nodes
+                // Handle node sizing
                 if (prefs.nodeSizeAuto) {
                     updateAutoSizedNodes(network);
+                } else {
+                    // Reset all nodes to uniform manual size
+                    resetNodesToUniformSize(network, prefs.nodeSize);
                 }
 
-                // Handle value-based arrow scaling
+                // Handle arrow scaling
                 if (prefs.arrowScaleByValue) {
-                    updateValueBasedArrows(network, prefs.arrowScale);
+                    updateValueBasedArrows(network, prefs.arrowScale, prefs.arrowSkinnyMode);
+                } else {
+                    // Reset all arrows to uniform scale
+                    resetArrowsToUniformScale(network, prefs.arrowScale, prefs.arrowSkinnyMode);
                 }
             }
 
@@ -880,7 +912,7 @@
             }
 
             // Update arrow sizes based on edge values
-            function updateValueBasedArrows(network, baseScale) {
+            function updateValueBasedArrows(network, baseScale, skinnyMode = false) {
                 const edges = network.body.data.edges;
                 
                 if (edges) {
@@ -896,9 +928,39 @@
                         
                         return {
                             id: edge.id,
-                            arrows: { to: { enabled: true, scaleFactor } }
+                            arrows: { to: { enabled: true, scaleFactor } },
+                            width: scaleFactor * (skinnyMode ? 1 : 2)  // Scale body width proportionally
                         };
                     });
+
+                    edges.update(updates);
+                }
+            }
+
+            // Reset all nodes to uniform manual size
+            function resetNodesToUniformSize(network, uniformSize) {
+                const nodes = network.body.data.nodes;
+                
+                if (nodes) {
+                    const updates = nodes.map(node => ({
+                        id: node.id,
+                        size: uniformSize
+                    }));
+
+                    nodes.update(updates);
+                }
+            }
+
+            // Reset all arrows to uniform scale
+            function resetArrowsToUniformScale(network, uniformScale, skinnyMode = false) {
+                const edges = network.body.data.edges;
+                
+                if (edges) {
+                    const updates = edges.map(edge => ({
+                        id: edge.id,
+                        arrows: { to: { enabled: true, scaleFactor: uniformScale } },
+                        width: uniformScale * (skinnyMode ? 1 : 2)  // Reset body width to uniform scale
+                    }));
 
                     edges.update(updates);
                 }
@@ -930,6 +992,7 @@
                 document.getElementById('arrow-scale-slider').value = prefs.arrowScale;
                 document.getElementById('arrow-scale-value').textContent = prefs.arrowScale + 'x';
                 document.getElementById('arrow-scale-by-value').checked = prefs.arrowScaleByValue;
+                document.getElementById('arrow-skinny-mode').checked = prefs.arrowSkinnyMode;
                 
                 document.getElementById('physics-preset').value = prefs.physicsPreset;
                 document.getElementById('spring-length-slider').value = prefs.springLength;
@@ -963,6 +1026,12 @@
                 applyPreferences(currentPrefs);
             });
 
+            document.getElementById('arrow-skinny-mode').addEventListener('change', (e) => {
+                currentPrefs.arrowSkinnyMode = e.target.checked;
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
             document.getElementById('physics-preset').addEventListener('change', (e) => {
                 currentPrefs.physicsPreset = e.target.value;
                 savePreferences(currentPrefs);
@@ -972,6 +1041,15 @@
             document.getElementById('spring-length-slider').addEventListener('input', (e) => {
                 currentPrefs.springLength = parseInt(e.target.value);
                 document.getElementById('spring-length-value').textContent = currentPrefs.springLength + 'px';
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
+            // Reset to defaults button
+            document.getElementById('reset-defaults-btn').addEventListener('click', () => {
+                // Reset to original v2.0 defaults
+                currentPrefs = { ...defaultPrefs };
+                updateUI(currentPrefs);
                 savePreferences(currentPrefs);
                 applyPreferences(currentPrefs);
             });
@@ -990,7 +1068,9 @@
             return {
                 applyPreferences: () => applyPreferences(currentPrefs),
                 updateAutoSizedNodes: () => updateAutoSizedNodes(network),
-                updateValueBasedArrows: () => updateValueBasedArrows(network, currentPrefs.arrowScale),
+                updateValueBasedArrows: () => updateValueBasedArrows(network, currentPrefs.arrowScale, currentPrefs.arrowSkinnyMode),
+                resetNodesToUniformSize: () => resetNodesToUniformSize(network, currentPrefs.nodeSize),
+                resetArrowsToUniformScale: () => resetArrowsToUniformScale(network, currentPrefs.arrowScale, currentPrefs.arrowSkinnyMode),
                 getCurrentPrefs: () => currentPrefs
             };
         }
@@ -1132,9 +1212,13 @@
                         const prefs = network._vizPrefs.getCurrentPrefs();
                         if (prefs.nodeSizeAuto) {
                             network._vizPrefs.updateAutoSizedNodes();
+                        } else {
+                            network._vizPrefs.resetNodesToUniformSize();
                         }
                         if (prefs.arrowScaleByValue) {
                             network._vizPrefs.updateValueBasedArrows();
+                        } else {
+                            network._vizPrefs.resetArrowsToUniformScale();
                         }
                     }
                 }, 300);

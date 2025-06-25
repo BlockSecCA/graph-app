@@ -3,7 +3,7 @@
 ## Project Overview
 **graph-app** - Professional Electron-based causal graph editor and analysis tool
 - **Repository**: https://github.com/BlockSecCA/graph-app
-- **Version**: 2.1.0 (Advanced visualization controls added)
+- **Version**: 2.1.1 (Visualization preferences bug fixes and enhancements)
 - **Tech Stack**: Electron v25.0.0, Node.js v20.19.2, vis-network, Pyodide, NetworkX
 - **Purpose**: Modern unified interface for graph editing with extensible Python-based analysis
 
@@ -97,7 +97,7 @@ main.js (Electron main process)
 - ✅ **Error Handling**: Comprehensive debugging and graceful fallbacks
 - ✅ **Template System**: Plugin development template remains clean and user-friendly
 
-**Status**: 🎉 **v2.1.0 COMPLETE** - Advanced visualization preferences system fully operational. Users can now customize node sizing, arrow scaling, and physics layout with persistent preferences. Addresses GitHub issue #39 with comprehensive visualization controls.
+**Status**: 🎉 **v2.1.1 COMPLETE** - All visualization preferences bugs fixed and enhancements added. Advanced preferences system now fully operational with robust slider controls, reset functionality, unified arrow scaling, and skinny arrow option. Addresses GitHub issues #39 and #40 completely.
 
 ## v2.1.0 New Features ✅
 - ✅ **Visualization Preferences Panel**: Collapsible UI in graph editor header
@@ -107,6 +107,13 @@ main.js (Electron main process)
 - ✅ **Persistent Preferences**: localStorage-based settings that survive app restarts
 - ✅ **Real-time Updates**: Automatic preference application on graph changes
 - ✅ **Backward Compatibility**: Defaults match previous v2.0.x behavior
+
+## v2.1.1 Bug Fixes & Enhancements ✅
+- ✅ **Fixed Slider Bugs**: Node size and arrow scale sliders now work after toggling auto-modes
+- ✅ **Reset to Defaults**: Red button to restore original v2.0 settings instantly
+- ✅ **Unified Arrow Scaling**: Head and body now scale together as single element
+- ✅ **Skinny Arrow Option**: Checkbox for thinner arrow style override
+- ✅ **Robust State Management**: Proper individual property resets when switching modes
 
 ## v2.1 Series Complete ✅
 The visualization enhancement vision is now fully realized:
