@@ -57,21 +57,6 @@ const menuTemplate = [
         label: 'File',
         submenu: [
             { 
-                label: 'New Graph', 
-                accelerator: 'CmdOrCtrl+N',
-                click: () => {
-                    console.log('Menu: New Graph clicked (main process)');
-                    const win = BrowserWindow.getFocusedWindow();
-                    if (win) {
-                        console.log('Sending menu-new-graph to renderer');
-                        win.webContents.send('menu-new-graph');
-                    } else {
-                        console.log('No focused window found');
-                    }
-                }
-            },
-            { type: 'separator' },
-            { 
                 label: 'Load Graph...', 
                 accelerator: 'CmdOrCtrl+O',
                 click: async () => {

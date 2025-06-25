@@ -315,13 +315,7 @@ class GraphAppState extends EventTarget {
      */
     async runAnalysis() {
         if (this.state.currentGraph.nodes.length === 0) {
-            // Clear analysis results for empty graphs
-            this.state.analysisResults = null;
-            this.state.isAnalyzing = false;
-            this.dispatchEvent(new CustomEvent('analysisCompleted', {
-                detail: { results: null }
-            }));
-            return;
+            return; // No graph to analyze
         }
         
         this.state.isAnalyzing = true;

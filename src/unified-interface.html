@@ -570,15 +570,6 @@
                     const { ipcRenderer } = window.require('electron');
                     console.log('IPC Renderer available, setting up menu listeners...');
                     
-                    ipcRenderer.on('menu-new-graph', () => {
-                        console.log('Menu: New Graph clicked');
-                        if (confirm('Create a new graph? This will clear the current graph.')) {
-                            // Simple solution: just reload the page (works perfectly!)
-                            console.log('New Graph: Reloading page for fresh state...');
-                            location.reload();
-                        }
-                    });
-                    
                     ipcRenderer.on('menu-load-graph-content', (event, fileContent, fileName) => {
                         console.log('Menu: Load Graph content received');
                         try {
