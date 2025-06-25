@@ -562,15 +562,16 @@
     <script>
         // Initialize the unified interface
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔧 DOM loaded, electronAPI available:', typeof window.electronAPI === 'object');
+            console.log('🔧 DOM loaded, require available:', typeof window.require === 'function');
             initializeUnifiedInterface();
             
             // Set up IPC listeners for menu commands
-            if (window.electronAPI) {
+            if (window.require) {
                 try {
-                    console.log('ElectronAPI available, setting up menu listeners...');
+                    const { ipcRenderer } = window.require('electron');
+                    console.log('IPC Renderer available, setting up menu listeners...');
                     
-                    window.electronAPI.onMenuLoadGraph((event, fileContent, fileName) => {
+                    ipcRenderer.on('menu-load-graph-content', (event, fileContent, fileName) => {
                         console.log('Menu: Load Graph content received');
                         try {
                             window.graphApp.importGraph(fileContent);
@@ -580,12 +581,12 @@
                         }
                     });
                     
-                    window.electronAPI.onMenuSaveGraph(() => {
+                    ipcRenderer.on('menu-save-graph', () => {
                         console.log('Menu: Save Graph clicked');
                         saveGraphFile();
                     });
                     
-                    window.electronAPI.onMenuFitGraph(() => {
+                    ipcRenderer.on('menu-fit-graph', () => {
                         console.log('Menu: Fit Graph clicked');
                         const network = window.graphApp.networks.editor;
                         if (network) {
@@ -597,7 +598,7 @@
                     console.error('Failed to set up IPC listeners:', error);
                 }
             } else {
-                console.warn('electronAPI not available, menu shortcuts will not work');
+                console.warn('require not available, menu shortcuts will not work');
             }
         });
 
@@ -1484,12 +1485,12 @@ print(f"NetworkX works: {G.number_of_nodes()} nodes")
                 // Get plugins directory from main process
                 let pluginsDirectory;
                 try {
-                    console.log('🔬 Checking if electronAPI is available:', typeof window.electronAPI);
-                    if (window.electronAPI && window.electronAPI.getPluginsDirectory) {
-                        pluginsDirectory = await window.electronAPI.getPluginsDirectory();
+                    console.log('🔬 Checking if require is available:', typeof window.require);
+                    if (typeof window.require === 'function') {
+                        pluginsDirectory = await window.require('electron').ipcRenderer.invoke('get-plugins-directory');
                         console.log('🔬 Using user plugins directory:', pluginsDirectory);
                     } else {
-                        throw new Error('electronAPI not available - preload script might not be loaded');
+                        throw new Error('require function not available - nodeIntegration might be disabled');
                     }
                 } catch (e) {
                     console.warn('Could not get user plugins directory, falling back to built-in:', e);
