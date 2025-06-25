@@ -1,0 +1,12 @@
+{
+    "nodes": [
+        { "id": "A", "label": "Node A", "type": "Type1", "group": "Group1" },
+        { "id": "B", "label": "Node B", "type": "Type1", "group": "Group1" },
+        { "id": "C", "label": "Node C", "type": "Type2", "group": "Group2" }
+    ],
+    "edges": [
+        { "source": "A", "target": "B", "type": "+", "weight": 1.0 },
+        { "source": "B", "target": "C", "type": "-", "weight": 0.5 },
+        { "source": "A", "target": "C", "type": "+", "weight": 0.8 }
+    ]
+}

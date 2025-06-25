@@ -1,0 +1,16 @@
+{
+    "nodes": [
+      { "id": "1", "label": "Node 1" },
+      { "id": "1", "label": "Duplicate ID" },       
+      { "label": "Missing ID" },                    
+      { "id": "4" }                                 
+    ],
+    "edges": [
+      { "source": "1", "target": "2" },             
+      { "source": "1" },                            
+      { "target": "4" },                            
+      { "source": "999", "target": "1" },           
+      { "source": "1", "target": "4", "weight": "a" }, 
+      { "source": "1", "target": "1" }              
+    ]
+  }

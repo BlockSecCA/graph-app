@@ -16,6 +16,8 @@ function createWindow() {
         height: 600, // Set the height of the window
         webPreferences: {
             nodeIntegration: true, // Enable Node.js integration in the renderer process
+            contextIsolation: true, // Keep context isolation for security
+            preload: path.join(__dirname, 'preload.js') // Use preload script for secure IPC
         },
         icon: __dirname + `/assets/icon.ico`
     });

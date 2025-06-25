@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Visualization with Causal Analysis</title>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.3/full/pyodide.js"></script>
+
+    <style>
+        #graph-container {
+            width: 90vw;
+            height: 50vh;
+            border: 1px solid lightgray;
+            margin-top: 20px;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Load Controls -->
+    <div class="controls">
+        <input type="file" id="file-input" accept=".json" onchange="loadGraph(event)" />
+    </div>
+    <div>Output:</div>
+    <textarea id="output" style="width: 100%;" rows="6" disabled></textarea>
+
+    <!-- Graph Container -->
+    <div id="graph-container"></div>    
+
+    <!-- Button to run causal analysis -->
+    <button onclick="evaluatePython()">Run Causal Analysis</button>
+
+    <script>
+        let rawGraphData = {};    
+        const currentGraphData = { nodes: [], edges: [] };
+        let network;
+
+        // Python code to test Pyodide functionality
+        const output = document.getElementById("output");
+
+        function addToOutput(s) {
+            output.value += ">>> " + s + "\n";
+        }
+
+        let causalAnalysisCode = "";  // Declare causalAnalysisCode globally
+    
+        async function main() {
+            // Load Pyodide and networkx
+            let pyodide = await loadPyodide();
+            await pyodide.loadPackage('networkx');
+            output.value = "Ready!\n";
+            console.log("Pyodide and networkx are loaded.");
+            
+            // Load the causal analysis code
+            const pythonCodeUrl = "py/test_pyodide.py";
+            console.log("Loading python code for causal analysis...");
+            const response = await fetch(pythonCodeUrl);
+            if (!response.ok) {
+                console.error("Failed to load Python code:", response.status, response.statusText);
+                throw new Error("Could not load Python code.");
+            }
+            causalAnalysisCode = await response.text(); //DO NOT USE CONSTANT HERE
+            console.log("Loaded Python code:", causalAnalysisCode); // Check if actual content is printed here
+            //await pyodide.runPython(causalAnalysisCode);
+            console.log("Python code loaded successfully.");
+
+            return pyodide;
+        }
+
+        let pyodideReadyPromise = main();
+
+        async function evaluatePython() {
+            let pyodide = await pyodideReadyPromise;
+            try {
+                // Check if rawGraphData is defined
+                if (!rawGraphData || !rawGraphData.nodes || !rawGraphData.edges) {
+                    throw new Error("rawGraphData is not populated correctly.");
+                }
+
+                // Log the rawGraphData to ensure it's a plain object
+                console.log("Setting rawGraphData in Pyodide globals:", rawGraphData);
+
+                // Set rawGraphData in Pyodide globals using a simplified version of the data simpleGraphData
+                const GraphData = {
+                    nodes: rawGraphData.nodes || [],
+                    edges: rawGraphData.edges || []
+                };
+
+                // Set GraphData in the global scope
+                globalThis.GraphData = GraphData;
+                // Log to validate
+                console.log("GraphData set in global scope:", globalThis.GraphData);
+
+                // Validate the simpleGraphData
+                console.log("GraphData content:", JSON.stringify(GraphData, null, 2));
+                console.log("Setting GraphData in Pyodide globals:", GraphData);
+
+                pyodide.globals.set("graphData", GraphData);
+                pyodide.globals.set("nodes", GraphData.nodes);
+                pyodide.globals.set("edges", GraphData.edges);
+                
+                // Run the Python code
+                console.log("Running Python code...");
+                console.log("Loaded Python code:", causalAnalysisCode);
+                const result = await pyodide.runPythonAsync(causalAnalysisCode);
+
+                // Convert Pyodide proxy to plain JS object if needed
+                const jsResult = result.toJs ? result.toJs() : result;
+                console.log("Python code output:", jsResult);
+
+                // Format the result for human readability
+                const lines = [];
+                if (jsResult.influence_scores) {
+                    lines.push("Influence Scores:");
+                    for (const [label, score] of Object.entries(jsResult.influence_scores)) {
+                        lines.push(`${label}: ${score}`);
+                    }
+                }
+
+                if (jsResult.positive_paths) {
+                    lines.push("", "Positive Paths:");
+                    for (const path of jsResult.positive_paths) {
+                        lines.push(path.join(" \u2192 "));
+                    }
+                }
+
+                if (jsResult.negative_paths) {
+                    lines.push("", "Negative Paths:");
+                    for (const path of jsResult.negative_paths) {
+                        lines.push(path.join(" \u2192 "));
+                    }
+                }
+
+                const formatted = lines.join("\n");
+
+                alert(formatted); // Display nicely formatted output
+                addToOutput(formatted);
+            } catch (err) {
+                console.error("Error during debugging:", err);
+                alert("Failed to perform debugging.");
+                addToOutput("Failed to perform debugging.");
+            }
+        }     
+
+        function renderGraph() {
+            const container = document.getElementById("graph-container");
+            if (network) {
+                network.destroy();
+                network = null;
+            }
+
+            const nodes = new vis.DataSet(currentGraphData.nodes);
+            const edges = new vis.DataSet(
+                currentGraphData.edges.map(edge => ({
+                    from: edge.source,
+                    to: edge.target,
+                    label: edge.type,
+                    width: edge.weight * 2,
+                    color: edge.type === "+" ? "#FF0000" : "#00FF00",
+                    arrows: { to: { enabled: true, scaleFactor: 1.5 } }
+                }))
+            );
+
+            const options = {
+                nodes: { shape: 'dot', size: 10, font: { color: '#000000', size: 16 } },
+                edges: { arrows: { to: { enabled: true, scaleFactor: 1.5 } },
+                         color: '#848484', smooth: true,
+                         font: { color: '#343434', size: 14, align: 'middle' } },
+                physics: { enabled: true, stabilization: { iterations: 1000 } }
+            };
+
+            network = new vis.Network(container, { nodes, edges }, options);
+            console.log("Network re-rendered with updated data.");
+            addToOutput("Rendered graph.");
+        }
+
+        async function loadGraph(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileContent = await file.text();
+            try {
+                const data = JSON.parse(fileContent);
+
+                rawGraphData = data;
+                currentGraphData.nodes = data.nodes || [];
+                currentGraphData.edges = data.edges || [];
+
+                // Debugging output to check if rawGraphData is populated correctly
+                console.log("Raw graph data:", rawGraphData);
+                console.log("Nodes:", currentGraphData.nodes);
+                console.log("Edges:", currentGraphData.edges);
+
+                renderGraph();
+                console.log("Graph loaded from file:", file.name);
+            } catch (error) {
+                console.error("Error loading JSON file:", error);
+                alert("Failed to load JSON file. Ensure it has a valid structure.");
+            }
+        }
+    </script>
+</body>
+</html>
