@@ -1652,6 +1652,69 @@ print(f"Plugin loader initialized")
             }
         }
         
+        async function executePluginViaFetch(pluginId, graph, parameters) {
+            try {
+                console.log('🔌 Executing plugin via fetch:', pluginId);
+                
+                // Fetch the analysis.py file for this plugin
+                const analysisResponse = await fetch(`../py/plugins/${pluginId}/analysis.py`);
+                if (!analysisResponse.ok) {
+                    throw new Error(`Could not load analysis code for ${pluginId}`);
+                }
+                
+                const analysisCode = await analysisResponse.text();
+                console.log('✅ Loaded analysis code for', pluginId);
+                
+                // Ensure NetworkX is loaded
+                if (!window.networkXLoaded) {
+                    console.log('Loading NetworkX for plugin execution...');
+                    await window.pyodide.loadPackage(['networkx']);
+                    window.networkXLoaded = true;
+                }
+                
+                // Execute the plugin analysis in Pyodide
+                const nodesJson = JSON.stringify(graph.nodes);
+                const edgesJson = JSON.stringify(graph.edges);
+                const paramsJson = JSON.stringify(parameters || {});
+                
+                const result = window.pyodide.runPython(`
+# Load the analysis code into Pyodide
+exec('''${analysisCode.replace(/'''/g, "\\'''")}''')
+
+# Parse the input data
+import json
+nodes = json.loads('''${nodesJson}''')
+edges = json.loads('''${edgesJson}''')
+params = json.loads('''${paramsJson}''')
+
+# Execute the analysis
+try:
+    result = analyze_graph(nodes, edges, params)
+    print(f"Plugin ${pluginId} executed successfully")
+    json.dumps(result)
+except Exception as e:
+    print(f"Plugin ${pluginId} execution failed: {e}")
+    json.dumps({"error": str(e), "summary": f"Plugin execution failed: {e}"})
+                `);
+                
+                const response = JSON.parse(result);
+                
+                if (response.error) {
+                    throw new Error(response.error);
+                }
+                
+                console.log('🎉 Plugin execution successful:', pluginId);
+                return response;
+                
+            } catch (error) {
+                console.error(`Plugin ${pluginId} execution failed:`, error);
+                return {
+                    summary: `Plugin ${pluginId} execution failed: ${error.message}`,
+                    error: error.message
+                };
+            }
+        }
+
         async function executePlugin(pluginId, graph, parameters) {
             try {
                 // Ensure NetworkX is loaded before plugin execution
@@ -1740,15 +1803,31 @@ execute_plugin_js('${pluginId}', '''${nodesJson}''', '''${edgesJson}''', '''${pa
                             // Extract ANALYSIS_INFO from the plugin
                             const analysisMatch = initCode.match(/ANALYSIS_INFO\s*=\s*({[\s\S]*?})/);
                             if (analysisMatch) {
-                                // Very basic extraction - this is a temporary solution
-                                const plugin = {
-                                    id: pluginName,
-                                    name: `${pluginName.charAt(0).toUpperCase() + pluginName.slice(1).replace(/-/g, ' ')} Analysis`,
-                                    description: `${pluginName} analysis plugin`,
-                                    version: '1.0.0'
-                                };
-                                plugins.push(plugin);
-                                console.log('Loaded plugin via fetch:', plugin.name);
+                                try {
+                                    // Try to parse the ANALYSIS_INFO as Python dict -> JSON
+                                    let analysisInfo = analysisMatch[1];
+                                    
+                                    // Convert Python dict syntax to JSON
+                                    analysisInfo = analysisInfo
+                                        .replace(/'/g, '"')  // Single quotes to double quotes
+                                        .replace(/True/g, 'true')
+                                        .replace(/False/g, 'false')
+                                        .replace(/None/g, 'null');
+                                    
+                                    const plugin = JSON.parse(analysisInfo);
+                                    plugins.push(plugin);
+                                    console.log('✅ Loaded plugin via fetch:', plugin.name);
+                                } catch (parseError) {
+                                    // Fallback to simple plugin info
+                                    const plugin = {
+                                        id: pluginName,
+                                        name: `${pluginName.charAt(0).toUpperCase() + pluginName.slice(1).replace(/-/g, ' ')} Analysis`,
+                                        description: `${pluginName} analysis plugin`,
+                                        version: '1.0.0'
+                                    };
+                                    plugins.push(plugin);
+                                    console.log('📝 Loaded plugin with basic info:', plugin.name);
+                                }
                             }
                         }
                     } catch (e) {
@@ -1760,13 +1839,12 @@ execute_plugin_js('${pluginId}', '''${nodesJson}''', '''${edgesJson}''', '''${pa
                     console.log('Successfully loaded', plugins.length, 'plugins via fetch');
                     updatePluginDropdown(plugins);
                     
-                    // Register minimal plugin handlers (they'll use NetworkX directly)
+                    // Register plugin handlers with fetch-based execution
                     for (const plugin of plugins) {
                         window.graphApp.state.availablePlugins.set(plugin.id, {
                             info: plugin,
                             analyze: async (graph, params) => {
-                                showStatus('Direct plugin execution not yet implemented', 'warning');
-                                return { summary: 'Plugin loaded but execution not implemented' };
+                                return await executePluginViaFetch(plugin.id, graph, params);
                             }
                         });
                     }
