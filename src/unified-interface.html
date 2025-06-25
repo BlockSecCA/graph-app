@@ -1493,10 +1493,10 @@ print(f"NetworkX works: {G.number_of_nodes()} nodes")
                 console.log('Plugin loader loaded');
                 
                 // Set plugins directory in Python
+                console.log('🔬 Initializing plugin loader...');
                 window.pyodide.runPython(`
+# The plugin_loader code is already executed, so we can access its classes directly
 import js
-_plugin_loader = None
-from plugin_loader import PluginLoader
 _plugin_loader = PluginLoader("${pluginsDirectory.replace(/\\/g, '/')}")
 print(f"Plugin loader initialized with directory: ${pluginsDirectory.replace(/\\/g, '/')}")
                 `);
