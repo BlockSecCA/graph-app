@@ -140,9 +140,32 @@ const menuTemplate = [
         ]
     },
     {
+        label: 'Tools',
+        submenu: [
+            { 
+                label: 'Open Plugins Folder', 
+                click: () => {
+                    const pluginsDir = global.pluginsDirectory || initializePluginDirectories();
+                    shell.openPath(pluginsDir);
+                }
+            }
+        ]
+    },
+    {
         label: 'Help',
         submenu: [
-            { label: 'Open README', click: openReadme } // Call openReadme function
+            { label: 'Open README', click: openReadme }, // Call openReadme function
+            { type: 'separator' },
+            { 
+                label: 'Plugin Documentation', 
+                click: () => {
+                    const pluginSpecPath = path.join(__dirname, 'PLUGIN_SPEC.md');
+                    // Use openExternal to open in default text editor instead of shell.openPath
+                    shell.openExternal(`file://${pluginSpecPath}`).catch(error => {
+                        console.log('Could not open plugin documentation:', error);
+                    });
+                }
+            }
         ]
     }
 ];
@@ -151,8 +174,73 @@ const menuTemplate = [
 const menu = Menu.buildFromTemplate(menuTemplate);
 Menu.setApplicationMenu(menu);
 
+// Initialize plugin directories
+function initializePluginDirectories() {
+    const userDataPath = app.getPath('userData');
+    const pluginsDir = path.join(userDataPath, 'plugins');
+    
+    // Create plugins directory if it doesn't exist
+    if (!fs.existsSync(pluginsDir)) {
+        fs.mkdirSync(pluginsDir, { recursive: true });
+        console.log('Created user plugins directory:', pluginsDir);
+    }
+    
+    // Copy built-in plugins to user directory (first time only)
+    const builtinPluginsDir = path.join(__dirname, 'py', 'plugins');
+    
+    if (fs.existsSync(builtinPluginsDir)) {
+        const builtinPlugins = fs.readdirSync(builtinPluginsDir);
+        
+        for (const pluginName of builtinPlugins) {
+            const srcDir = path.join(builtinPluginsDir, pluginName);
+            const destDir = path.join(pluginsDir, pluginName);
+            
+            // Only copy if destination doesn't exist (don't overwrite user modifications)
+            if (!fs.existsSync(destDir) && fs.statSync(srcDir).isDirectory()) {
+                try {
+                    copyDirectory(srcDir, destDir);
+                    console.log(`Copied built-in plugin: ${pluginName}`);
+                } catch (error) {
+                    console.error(`Failed to copy plugin ${pluginName}:`, error);
+                }
+            }
+        }
+    }
+    
+    // Store plugin directory path for renderer process
+    global.pluginsDirectory = pluginsDir;
+    
+    return pluginsDir;
+}
+
+// Helper function to copy directories recursively
+function copyDirectory(src, dest) {
+    fs.mkdirSync(dest, { recursive: true });
+    
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    
+    for (const entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        
+        if (entry.isDirectory()) {
+            copyDirectory(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+}
+
+// Add IPC handler for getting plugins directory
+ipcMain.handle('get-plugins-directory', () => {
+    return global.pluginsDirectory || initializePluginDirectories();
+});
+
 // Event listener for when the app is ready to create the window
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    initializePluginDirectories();
+    createWindow();
+});
 
 // Event listener for when all windows are closed
 app.on('window-all-closed', () => {

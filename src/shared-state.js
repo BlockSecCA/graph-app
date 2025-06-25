@@ -93,6 +93,11 @@ class GraphAppState extends EventTarget {
             detail: { node, graph: this.state.currentGraph }
         }));
         
+        // Also dispatch graphUpdated to trigger visual updates
+        this.dispatchEvent(new CustomEvent('graphUpdated', {
+            detail: { graph: this.state.currentGraph }
+        }));
+        
         this.triggerAnalysis();
     }
     
@@ -126,6 +131,11 @@ class GraphAppState extends EventTarget {
         
         this.dispatchEvent(new CustomEvent('edgeAdded', {
             detail: { edge, graph: this.state.currentGraph }
+        }));
+        
+        // Also dispatch graphUpdated to trigger visual updates
+        this.dispatchEvent(new CustomEvent('graphUpdated', {
+            detail: { graph: this.state.currentGraph }
         }));
         
         this.triggerAnalysis();

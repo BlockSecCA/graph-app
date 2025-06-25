@@ -700,15 +700,20 @@
         }
 
         function updateNetworkData(network, graphData) {
-            const nodes = new vis.DataSet(graphData.nodes.map((node, index) => ({
-                id: node.id,
-                label: node.label || node.id,
-                group: node.group || 'default',
-                title: `${node.label || node.id}\nType: ${node.type || 'N/A'}\nGroup: ${node.group || 'default'}`,
-                // Ensure nodes have positions - use provided or generate reasonable defaults
-                x: node.x !== undefined ? node.x : (index * 150) - (graphData.nodes.length * 75),
-                y: node.y !== undefined ? node.y : Math.sin(index * 0.8) * 100
-            })));
+            console.log('Updating network with graph data:', graphData);
+            const nodes = new vis.DataSet(graphData.nodes.map((node, index) => {
+                const nodeData = {
+                    id: node.id,
+                    label: node.label || node.id,
+                    group: node.group || 'default',
+                    title: `${node.label || node.id}\nType: ${node.type || 'N/A'}\nGroup: ${node.group || 'default'}`,
+                    // Use provided positions or let physics handle it
+                    x: node.x,
+                    y: node.y
+                };
+                console.log('Creating node for network:', nodeData);
+                return nodeData;
+            }));
 
             const edges = new vis.DataSet(graphData.edges.map(edge => ({
                 id: `${edge.source}-${edge.target}`,
@@ -785,7 +790,9 @@
                 
                 // Use vis-network API to get the clicked position
                 const domPointer = { x: e.offsetX, y: e.offsetY };
+                // Convert DOM coordinates to canvas coordinates for node placement
                 const networkPointer = network.DOMtoCanvas(domPointer);
+                console.log('DOM pointer:', domPointer, 'Network pointer:', networkPointer);
                 
                 // Check what was clicked using vis-network methods
                 const nodeId = network.getNodeAt(domPointer);
@@ -797,8 +804,9 @@
                 } else if (edgeId) {
                     showEdgeContextMenu(e.clientX, e.clientY, edgeId);
                 } else {
-                    // Use network coordinates for adding nodes
-                    showCanvasContextMenu(e.clientX, e.clientY, networkPointer);
+                    // Use simple coordinates instead of problematic network conversion
+                    const simpleCoords = { x: 0, y: 0 }; // Place at center
+                    showCanvasContextMenu(e.clientX, e.clientY, simpleCoords);
                 }
             });
             
@@ -857,7 +865,21 @@
                     showAddNodeDialog(canvasPosition);
                 };
                 
+                const separator = document.createElement('div');
+                separator.className = 'context-menu-separator';
+                
+                const addEdgeItem = document.createElement('button');
+                addEdgeItem.className = 'context-menu-item';
+                addEdgeItem.innerHTML = '🔗 Add Edge';
+                addEdgeItem.onclick = (e) => {
+                    e.stopPropagation();
+                    closeContextMenu();
+                    showAddEdgeDialog();
+                };
+                
                 contextMenu.appendChild(addNodeItem);
+                contextMenu.appendChild(separator);
+                contextMenu.appendChild(addEdgeItem);
                 document.body.appendChild(contextMenu);
             }
             
@@ -1084,19 +1106,25 @@
                         label: label || id
                     };
                     
-                    // Add position data if available from canvas click
-                    if (canvasPosition && canvasPosition.x !== undefined && canvasPosition.y !== undefined) {
+                    // Add position data - use canvas position if available, otherwise let physics handle it
+                    if (canvasPosition && canvasPosition.x !== undefined && canvasPosition.y !== undefined && 
+                        Math.abs(canvasPosition.x) < 500 && Math.abs(canvasPosition.y) < 500) {
+                        // Use canvas position if it's within reasonable bounds
                         nodeData.x = canvasPosition.x;
                         nodeData.y = canvasPosition.y;
                         console.log('Adding node at canvas position:', canvasPosition);
                     } else {
-                        // Generate a position near the center but not exactly at 0,0
-                        const existingNodes = window.graphApp.state.currentGraph.nodes.length;
-                        const angle = (existingNodes * 137.5) * (Math.PI / 180); // Golden angle for good distribution
-                        const radius = 50 + (existingNodes * 20);
-                        nodeData.x = Math.cos(angle) * radius;
-                        nodeData.y = Math.sin(angle) * radius;
-                        console.log('Adding node at generated position:', { x: nodeData.x, y: nodeData.y });
+                        // Let physics determine position, but give a hint near other nodes
+                        const existingNodes = window.graphApp.state.currentGraph.nodes;
+                        if (existingNodes.length > 0) {
+                            // Place near the center of existing nodes
+                            const avgX = existingNodes.reduce((sum, n) => sum + (n.x || 0), 0) / existingNodes.length;
+                            const avgY = existingNodes.reduce((sum, n) => sum + (n.y || 0), 0) / existingNodes.length;
+                            nodeData.x = avgX + (Math.random() - 0.5) * 100;
+                            nodeData.y = avgY + (Math.random() - 0.5) * 100;
+                        }
+                        // If no existing nodes, let physics place it (no x,y specified)
+                        console.log('Adding node with physics positioning:', nodeData.x ? { x: nodeData.x, y: nodeData.y } : 'auto');
                     }
                     
                     console.log('Adding node with data:', nodeData);
@@ -1227,6 +1255,99 @@
                 }
             };
         }
+        
+        function showAddEdgeDialog() {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'modal-dialog';
+            
+            // Get existing node IDs for suggestions
+            const nodeIds = window.graphApp.state.currentGraph.nodes.map(n => n.id);
+            const nodeOptions = nodeIds.map(id => `<option value="${id}">${id}</option>`).join('');
+            
+            dialog.innerHTML = `
+                <h3 class="modal-title">Add New Edge</h3>
+                <select id="modal-edge-source" class="modal-input">
+                    <option value="">Select Source Node</option>
+                    ${nodeOptions}
+                </select>
+                <select id="modal-edge-target" class="modal-input">
+                    <option value="">Select Target Node</option>
+                    ${nodeOptions}
+                </select>
+                <select id="modal-edge-type" class="modal-input">
+                    <option value="+">Positive (+)</option>
+                    <option value="-">Negative (-)</option>
+                </select>
+                <input type="number" id="modal-edge-weight" class="modal-input" placeholder="Weight" value="1" step="0.1" min="0" />
+                <div class="modal-buttons">
+                    <button class="modal-button secondary" onclick="closeModal()">Cancel</button>
+                    <button class="modal-button primary" onclick="createEdge()">Add Edge</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            // Focus the first select
+            setTimeout(() => {
+                document.getElementById('modal-edge-source').focus();
+            }, 100);
+            
+            // Handle enter key
+            dialog.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    createEdge();
+                }
+            });
+            
+            window.closeModal = () => {
+                document.body.removeChild(overlay);
+                delete window.closeModal;
+                delete window.createEdge;
+            };
+            
+            window.createEdge = () => {
+                const source = document.getElementById('modal-edge-source').value.trim();
+                const target = document.getElementById('modal-edge-target').value.trim();
+                const type = document.getElementById('modal-edge-type').value;
+                const weight = parseFloat(document.getElementById('modal-edge-weight').value) || 1;
+                
+                if (!source) {
+                    showStatus('Please select a source node', 'error');
+                    return;
+                }
+                
+                if (!target) {
+                    showStatus('Please select a target node', 'error');
+                    return;
+                }
+                
+                if (source === target) {
+                    showStatus('Source and target cannot be the same node', 'error');
+                    return;
+                }
+                
+                try {
+                    const edgeData = { 
+                        source, 
+                        target, 
+                        type,
+                        weight 
+                    };
+                    
+                    console.log('Adding edge with data:', edgeData);
+                    window.graphApp.addEdge(edgeData);
+                    showStatus(`Edge "${source} → ${target}" added successfully`, 'success');
+                    closeModal();
+                    
+                } catch (error) {
+                    showStatus(error.message, 'error');
+                }
+            };
+        }
 
         function initializeEventHandlers() {
             // File operations (still needed for compatibility)
@@ -1255,6 +1376,15 @@
             document.getElementById('run-analysis').addEventListener('click', () => {
                 window.graphApp.triggerAnalysis();
             });
+            
+            // Plugin selection change
+            document.getElementById('plugin-select').addEventListener('change', (e) => {
+                const selectedPlugin = e.target.value;
+                if (selectedPlugin) {
+                    console.log('Plugin selected:', selectedPlugin);
+                    window.graphApp.setPlugin(selectedPlugin);
+                }
+            });
 
             // Listen for analysis events
             window.graphApp.addEventListener('analysisStarted', () => {
@@ -1279,22 +1409,177 @@
         }
 
         async function initializeAnalysisSystem() {
-            console.log('Initializing analysis system (basic mode)...');
+            console.log('Initializing analysis system with Python plugins...');
             
-            // For now, use basic JavaScript analysis instead of Python
-            // This avoids the Pyodide loading issues
-            window.graphApp.state.availablePlugins.set('causal-paths', {
+            try {
+                // Get plugins directory - use development path for now, production will override
+                let pluginsDirectory = 'py/plugins';
+                
+                if (window.require) {
+                    try {
+                        const { ipcRenderer } = window.require('electron');
+                        const userPluginsDir = await ipcRenderer.invoke('get-plugins-directory');
+                        
+                        // In packaged apps, use user directory; in development, use source directory
+                        if (process.env.NODE_ENV === 'production' || !require('fs').existsSync(pluginsDirectory)) {
+                            pluginsDirectory = userPluginsDir;
+                            console.log('Using production plugins directory:', pluginsDirectory);
+                        } else {
+                            console.log('Using development plugins directory:', pluginsDirectory);
+                        }
+                    } catch (error) {
+                        console.log('Using fallback plugins directory:', pluginsDirectory);
+                    }
+                } else {
+                    console.log('Using web mode plugins directory:', pluginsDirectory);
+                }
+                
+                // Load Pyodide
+                window.pyodide = await loadPyodide();
+                console.log('Pyodide loaded successfully');
+                
+                // Install required packages
+                await window.pyodide.loadPackage(['networkx']);
+                console.log('NetworkX installed');
+                
+                // Load plugin loader module
+                const pluginLoaderResponse = await fetch('py/plugin_loader.py');
+                const pluginLoaderCode = await pluginLoaderResponse.text();
+                window.pyodide.runPython(pluginLoaderCode);
+                console.log('Plugin loader loaded');
+                
+                // Set plugins directory in Python
+                window.pyodide.runPython(`
+import js
+_plugin_loader = None
+from plugin_loader import PluginLoader
+_plugin_loader = PluginLoader("${pluginsDirectory.replace(/\\/g, '/')}")
+print(f"Plugin loader initialized with directory: ${pluginsDirectory.replace(/\\/g, '/')}")
+                `);
+                
+                // Discover plugins
+                await discoverPlugins();
+                
+                console.log('Plugin-based analysis system initialized');
+                
+            } catch (error) {
+                console.error('Failed to initialize plugin system, falling back to basic mode:', error);
+                await initializeFallbackAnalysis();
+            }
+        }
+        
+        async function discoverPlugins() {
+            try {
+                // Run plugin discovery
+                const result = window.pyodide.runPython(`discover_plugins_js()`);
+                const discovery = JSON.parse(result);
+                
+                if (!discovery.success) {
+                    throw new Error(discovery.error);
+                }
+                
+                console.log('Discovered plugins:', discovery.plugins);
+                
+                // Register plugins with shared state
+                window.graphApp.state.availablePlugins.clear();
+                
+                for (const plugin of discovery.plugins) {
+                    window.graphApp.state.availablePlugins.set(plugin.id, {
+                        info: plugin,
+                        analyze: async (graph, params) => {
+                            return await executePlugin(plugin.id, graph, params);
+                        }
+                    });
+                }
+                
+                // Update plugin dropdown
+                updatePluginDropdown(discovery.plugins);
+                
+                // Show any plugin loading errors
+                if (Object.keys(discovery.errors).length > 0) {
+                    console.warn('Plugin loading errors:', discovery.errors);
+                    for (const [plugin, error] of Object.entries(discovery.errors)) {
+                        showStatus(`Plugin ${plugin} failed to load: ${error}`, 'warning');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Plugin discovery failed:', error);
+                throw error;
+            }
+        }
+        
+        async function executePlugin(pluginId, graph, parameters) {
+            try {
+                const nodesJson = JSON.stringify(graph.nodes);
+                const edgesJson = JSON.stringify(graph.edges);
+                const paramsJson = JSON.stringify(parameters || {});
+                
+                const result = window.pyodide.runPython(`
+execute_plugin_js('${pluginId}', '''${nodesJson}''', '''${edgesJson}''', '''${paramsJson}''')
+                `);
+                
+                const response = JSON.parse(result);
+                
+                if (!response.success) {
+                    throw new Error(response.error);
+                }
+                
+                return response.results;
+                
+            } catch (error) {
+                console.error(`Plugin ${pluginId} execution failed:`, error);
+                throw error;
+            }
+        }
+        
+        function updatePluginDropdown(plugins) {
+            const select = document.getElementById('plugin-select');
+            
+            // Clear existing options
+            select.innerHTML = '';
+            
+            // Add discovered plugins
+            for (const plugin of plugins) {
+                const option = document.createElement('option');
+                option.value = plugin.id;
+                option.textContent = plugin.name;
+                option.title = plugin.description;
+                select.appendChild(option);
+            }
+            
+            // If no plugins found, add placeholder
+            if (plugins.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No plugins available';
+                option.disabled = true;
+                select.appendChild(option);
+            }
+            
+            // Select first plugin if available
+            if (plugins.length > 0) {
+                window.graphApp.setPlugin(plugins[0].id);
+            }
+        }
+        
+        async function initializeFallbackAnalysis() {
+            console.log('Initializing fallback analysis system...');
+            
+            // Fallback to basic JavaScript analysis if Python fails
+            window.graphApp.state.availablePlugins.set('basic-analysis', {
+                info: {
+                    id: 'basic-analysis',
+                    name: 'Basic Analysis (Fallback)',
+                    description: 'Simple JavaScript-based analysis when Python plugins fail'
+                },
                 analyze: async (graph, params) => {
                     if (graph.nodes.length === 0) {
                         throw new Error('No nodes in graph to analyze');
                     }
                     
-                    // Basic JavaScript analysis
+                    // Basic influence scores
                     const influenceScores = {};
-                    const positivePaths = [];
-                    const negativePaths = [];
-                    
-                    // Calculate basic influence scores (sum of incoming edge weights)
                     graph.nodes.forEach(node => {
                         let score = 0;
                         graph.edges.forEach(edge => {
@@ -1306,50 +1591,30 @@
                         influenceScores[node.label || node.id] = score;
                     });
                     
-                    // Find simple paths (just direct connections for now)
-                    if (graph.nodes.length >= 2) {
-                        const firstNode = graph.nodes[0];
-                        const lastNode = graph.nodes[graph.nodes.length - 1];
-                        
-                        // Find direct connection
-                        const directEdge = graph.edges.find(e => 
-                            e.source === firstNode.id && e.target === lastNode.id
-                        );
-                        
-                        if (directEdge) {
-                            const path = [firstNode.label || firstNode.id, lastNode.label || lastNode.id];
-                            if (directEdge.type === '+') {
-                                positivePaths.push(path);
-                            } else {
-                                negativePaths.push(path);
-                            }
-                        }
-                    }
-                    
                     return {
                         metadata: {
-                            analysis_id: 'causal-paths-basic',
-                            analysis_name: 'Basic Causal Analysis',
-                            timestamp: new Date().toISOString(),
-                            parameters_used: params,
-                            graph_stats: {
-                                nodes: graph.nodes.length,
-                                edges: graph.edges.length
-                            }
+                            analysis_id: 'basic-analysis',
+                            analysis_name: 'Basic Analysis (Fallback)',
+                            timestamp: new Date().toISOString()
                         },
                         results: {
                             primary: {
-                                influence_scores: influenceScores,
-                                positive_paths: positivePaths,
-                                negative_paths: negativePaths
+                                influence_scores: influenceScores
                             }
                         },
-                        summary: `Basic analysis complete. Found ${Object.keys(influenceScores).length} nodes with influence scores, ${positivePaths.length} positive paths, ${negativePaths.length} negative paths.`
+                        summary: `Fallback analysis complete. Found ${Object.keys(influenceScores).length} nodes with influence scores.`
                     };
                 }
             });
             
-            console.log('Basic analysis system initialized');
+            // Update dropdown for fallback
+            updatePluginDropdown([{
+                id: 'basic-analysis',
+                name: 'Basic Analysis (Fallback)', 
+                description: 'Simple JavaScript-based analysis when Python plugins fail'
+            }]);
+            
+            console.log('Fallback analysis system initialized');
         }
         
         function formatAnalysisSummary(results) {
@@ -1379,6 +1644,20 @@
             
             let html = `<div style="margin-bottom: 15px;"><strong>Summary:</strong> ${results.summary}</div>`;
             
+            // Show metadata if available
+            if (results.metadata) {
+                const meta = results.metadata;
+                html += `<div style="margin-bottom: 15px; font-size: 12px; color: #666;">
+                    <strong>Analysis:</strong> ${meta.analysis_name} | 
+                    <strong>Nodes:</strong> ${meta.graph_stats?.nodes || 0} | 
+                    <strong>Edges:</strong> ${meta.graph_stats?.edges || 0}`;
+                
+                if (meta.execution_time_ms) {
+                    html += ` | <strong>Time:</strong> ${meta.execution_time_ms}ms`;
+                }
+                html += `</div>`;
+            }
+            
             if (results.results && results.results.primary) {
                 const primary = results.results.primary;
                 
@@ -1388,8 +1667,12 @@
                         <strong>Influence Scores:</strong>
                         <div style="margin-left: 10px;">`;
                     
-                    Object.entries(primary.influence_scores).forEach(([node, score]) => {
-                        html += `<div>${node}: ${score}</div>`;
+                    const sortedScores = Object.entries(primary.influence_scores)
+                        .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+                    
+                    sortedScores.forEach(([node, score]) => {
+                        const color = score > 0 ? 'green' : score < 0 ? 'red' : 'gray';
+                        html += `<div><span style="color: ${color};">${node}: ${score}</span></div>`;
                     });
                     html += `</div></div>`;
                 }
