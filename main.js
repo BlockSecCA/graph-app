@@ -62,45 +62,6 @@ const menuTemplate = [
             },
             { type: 'separator' },
             { 
-                label: 'Load Graph...', 
-                accelerator: 'CmdOrCtrl+O',
-                click: async () => {
-                    const { dialog } = require('electron');
-                    const win = BrowserWindow.getFocusedWindow();
-                    if (win) {
-                        const result = await dialog.showOpenDialog(win, {
-                            properties: ['openFile'],
-                            filters: [
-                                { name: 'JSON Files', extensions: ['json'] },
-                                { name: 'All Files', extensions: ['*'] }
-                            ]
-                        });
-                        
-                        if (!result.canceled && result.filePaths.length > 0) {
-                            const filePath = result.filePaths[0];
-                            const fs = require('fs');
-                            try {
-                                const fileContent = fs.readFileSync(filePath, 'utf8');
-                                win.webContents.send('menu-load-graph-content', fileContent, path.basename(filePath));
-                            } catch (error) {
-                                console.error('Error reading file:', error);
-                            }
-                        }
-                    }
-                }
-            },
-            { 
-                label: 'Save Graph...', 
-                accelerator: 'CmdOrCtrl+S',
-                click: () => {
-                    const win = BrowserWindow.getFocusedWindow();
-                    if (win) {
-                        win.webContents.send('menu-save-graph');
-                    }
-                }
-            },
-            { type: 'separator' },
-            { 
                 label: 'Restart Application', 
                 accelerator: 'CmdOrCtrl+Shift+R',
                 click: () => {
@@ -115,17 +76,6 @@ const menuTemplate = [
     {
         label: 'View',
         submenu: [
-            { 
-                label: 'Fit Graph to View', 
-                accelerator: 'CmdOrCtrl+0',
-                click: () => {
-                    const win = BrowserWindow.getFocusedWindow();
-                    if (win) {
-                        win.webContents.send('menu-fit-graph');
-                    }
-                }
-            },
-            { type: 'separator' },
             { label: 'Toggle Developer Tools', role: 'toggledevtools' }
         ]
     },
