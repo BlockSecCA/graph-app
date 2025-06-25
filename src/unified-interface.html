@@ -573,13 +573,13 @@
                     ipcRenderer.on('menu-new-graph', () => {
                         console.log('Menu: New Graph clicked');
                         if (confirm('Create a new graph? This will clear the current graph.')) {
-                            // Reset to fresh launch state - recreate network and reset all state
-                            console.log('Resetting to fresh launch state...');
+                            // Simple approach: just clear the graph data
+                            console.log('Creating new graph...');
                             
-                            // Recreate the network completely and reset shared state (identical to app launch)
-                            createFreshNetwork(true);
+                            // Clear the graph through the normal shared state mechanism
+                            window.graphApp.updateGraph({ nodes: [], edges: [] });
                             
-                            showStatus('New graph created - completely reset to fresh state', 'info');
+                            showStatus('New graph created', 'info');
                         }
                     });
                     
@@ -673,82 +673,33 @@
                 height: '100%'
             };
 
-            // Function to create a fresh network (used for initial setup and New Graph)
-            function createFreshNetwork(isNewGraph = false) {
-                // Destroy existing network if it exists
-                if (window.editorNetwork) {
-                    console.log('Destroying existing network...');
-                    window.editorNetwork.destroy();
-                    
-                    // Remove existing event listeners
-                    window.removeEventListener('resize', window.currentResizeHandler);
-                }
-                
-                // For New Graph, completely reset shared state and remove all event listeners
-                if (isNewGraph) {
-                    console.log('Completely resetting shared state for New Graph...');
-                    
-                    // Remove all event listeners from graphApp
-                    if (window.currentGraphUpdateHandler) {
-                        window.graphApp.removeEventListener('graphUpdated', window.currentGraphUpdateHandler);
-                    }
-                    
-                    // Remove other accumulated event listeners
-                    if (window.currentContextMenuHandler) {
-                        container.removeEventListener('contextmenu', window.currentContextMenuHandler);
-                    }
-                    
-                    // Reset shared state to initial values (don't call updateGraph to avoid event firing)
-                    window.graphApp.state.currentGraph = { nodes: [], edges: [] };
-                    window.graphApp.state.analysisResults = null;
-                    window.graphApp.state.isAnalyzing = false;
-                    
-                    // Clear any modal state
-                    const existingModals = document.querySelectorAll('.modal-overlay');
-                    existingModals.forEach(modal => modal.remove());
-                }
-                
-                // Create completely fresh network
-                const newNetwork = new vis.Network(container, { nodes: new vis.DataSet(), edges: new vis.DataSet() }, options);
-                
-                // Force resize to container dimensions  
-                function resizeNetwork() {
-                    const rect = container.getBoundingClientRect();
-                    newNetwork.setSize(rect.width + 'px', rect.height + 'px');
-                    newNetwork.fit();
-                }
-                
-                // Initial resize
-                setTimeout(resizeNetwork, 100);
-                
-                // Resize on window resize
-                window.currentResizeHandler = resizeNetwork;
-                window.addEventListener('resize', resizeNetwork);
-                
-                // Register with shared state
-                window.graphApp.registerNetwork('editor', newNetwork);
-                
-                // Create and store graph update handler
-                window.currentGraphUpdateHandler = (e) => {
-                    updateNetworkData(newNetwork, e.detail.graph);
-                    updateStats(e.detail.graph);
-                };
-                
-                // Listen for graph updates
-                window.graphApp.addEventListener('graphUpdated', window.currentGraphUpdateHandler);
-                
-                // Add context menu support
-                setupContextMenus(newNetwork);
-                
-                // Store globally for access
-                window.editorNetwork = newNetwork;
-                
-                console.log('Fresh network created successfully');
-                return newNetwork;
+            // Create the vis-network
+            const editorNetwork = new vis.Network(container, { nodes: new vis.DataSet(), edges: new vis.DataSet() }, options);
+            
+            // Force resize to container dimensions
+            function resizeNetwork() {
+                const rect = container.getBoundingClientRect();
+                editorNetwork.setSize(rect.width + 'px', rect.height + 'px');
+                editorNetwork.fit();
             }
             
-            // Create initial network
-            const editorNetwork = createFreshNetwork();
+            // Initial resize
+            setTimeout(resizeNetwork, 100);
+            
+            // Resize on window resize
+            window.addEventListener('resize', resizeNetwork);
+            
+            // Register with shared state
+            window.graphApp.registerNetwork('editor', editorNetwork);
+            
+            // Listen for graph updates
+            window.graphApp.addEventListener('graphUpdated', (e) => {
+                updateNetworkData(editorNetwork, e.detail.graph);
+                updateStats(e.detail.graph);
+            });
+            
+            // Add context menu support
+            setupContextMenus(editorNetwork);
         }
 
         function updateNetworkData(network, graphData) {
