@@ -709,6 +709,13 @@
                 edges = new vis.DataSet();
                 network.setData({ nodes, edges });
                 console.log('Created fresh DataSets for empty graph');
+                
+                // Prevent canvas from capturing focus after setData
+                const canvas = network.canvas.frame.canvas;
+                if (canvas) {
+                    canvas.setAttribute('tabindex', '-1');
+                    console.log('Disabled canvas focus after setData');
+                }
             } else {
                 // For non-empty graphs, update existing DataSets
                 const currentData = network.body.data;
@@ -1130,8 +1137,18 @@
                     console.log('Input readonly:', input.readOnly);
                     console.log('Document activeElement before focus:', document.activeElement);
                     
-                    input.focus();
-                    input.select(); // Select text to make it obvious it's focused
+                    // More aggressive focus management
+                    const focusInput = () => {
+                        input.focus();
+                        input.select(); // Select text to make it obvious it's focused
+                    };
+                    
+                    focusInput();
+                    
+                    // Re-focus multiple times to fight against canvas stealing focus
+                    setTimeout(focusInput, 10);
+                    setTimeout(focusInput, 50);
+                    setTimeout(focusInput, 100);
                     
                     console.log('Document activeElement after focus:', document.activeElement);
                     console.log('Input has focus:', document.activeElement === input);
@@ -1155,7 +1172,16 @@
                     });
                     
                     input.addEventListener('blur', (e) => {
-                        console.log('Blur event detected');
+                        console.log('Blur event detected - new active element:', document.activeElement);
+                        console.log('Blur event relatedTarget:', e.relatedTarget);
+                        
+                        // If the blur is caused by the canvas stealing focus, reclaim it
+                        if (e.relatedTarget && e.relatedTarget.tagName === 'CANVAS') {
+                            console.log('Canvas stole focus - reclaiming it');
+                            setTimeout(() => {
+                                input.focus();
+                            }, 0);
+                        }
                     });
                     
                 } else {
