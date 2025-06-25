@@ -1594,8 +1594,8 @@ print(f"Plugin loader initialized")
                 
                 // Check if any plugins were actually discovered
                 if (window.graphApp.state.availablePlugins.size === 0) {
-                    console.warn('No plugins discovered, initializing fallback analysis...');
-                    await initializeFallbackAnalysis();
+                    console.warn('No plugins discovered via traditional method, trying fetch approach...');
+                    await initializePluginsViaFetch();
                 } else {
                     console.log('Plugin-based analysis system initialized with', window.graphApp.state.availablePlugins.size, 'plugins');
                 }
@@ -1778,7 +1778,7 @@ execute_plugin_js('${pluginId}', '''${nodesJson}''', '''${edgesJson}''', '''${pa
         }
         
         async function initializePluginsViaFetch() {
-            console.log('Trying alternative plugin loading via fetch...');
+            console.log('🔄 Trying alternative plugin loading via fetch...');
             
             try {
                 // Try to load plugins directly by fetching their __init__.py files
@@ -1796,7 +1796,9 @@ execute_plugin_js('${pluginId}', '''${nodesJson}''', '''${edgesJson}''', '''${pa
                 
                 for (const pluginName of pluginNames) {
                     try {
+                        console.log(`🔍 Fetching plugin: ${pluginName}`);
                         const initResponse = await fetch(`../py/plugins/${pluginName}/__init__.py`);
+                        console.log(`📡 Response for ${pluginName}:`, initResponse.status, initResponse.statusText);
                         if (initResponse.ok) {
                             const initCode = await initResponse.text();
                             
