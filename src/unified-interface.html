@@ -1045,6 +1045,12 @@
         }
 
         function showAddNodeDialog(canvasPosition) {
+            console.log('showAddNodeDialog called with position:', canvasPosition);
+            
+            // Remove any existing modals first
+            const existingModals = document.querySelectorAll('.modal-overlay');
+            existingModals.forEach(modal => modal.remove());
+            
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
             
@@ -1064,9 +1070,17 @@
             overlay.appendChild(dialog);
             document.body.appendChild(overlay);
             
-            // Focus the first input
+            console.log('Modal dialog created and added to DOM');
+            
+            // Focus the first input with better error handling
             setTimeout(() => {
-                document.getElementById('modal-node-id').focus();
+                const input = document.getElementById('modal-node-id');
+                if (input) {
+                    input.focus();
+                    console.log('Input focused successfully');
+                } else {
+                    console.error('Could not find modal-node-id input element');
+                }
             }, 100);
             
             // Handle enter key
