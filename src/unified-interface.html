@@ -883,12 +883,12 @@
                     },
                     physics: {
                         enabled: physicsActive,
-                        stabilization: physicsActive ? { 
-                            enabled: true,
+                        stabilization: { 
+                            enabled: physicsActive,
                             iterations: 500,
                             updateInterval: 25
-                        } : false,
-                        barnesHut: physicsActive ? {
+                        },
+                        barnesHut: {
                             ...options.physics.barnesHut,
                             springLength: prefs.springLength,
                             ...(prefs.physicsPreset === 'tight' && {
@@ -901,7 +901,7 @@
                                 centralGravity: 0.1,
                                 springLength: prefs.springLength * 1.3
                             })
-                        } : {}
+                        }
                     }
                 };
 

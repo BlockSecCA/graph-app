@@ -3,7 +3,7 @@
 ## Project Overview
 **graph-app** - Professional Electron-based causal graph editor and analysis tool
 - **Repository**: https://github.com/BlockSecCA/graph-app
-- **Version**: 2.2.0 (Major performance optimization for large graphs)
+- **Version**: 2.2.1 (Fixed zoom/pan interaction with physics optimization)
 - **Tech Stack**: Electron v25.0.0, Node.js v20.19.2, vis-network, Pyodide, NetworkX
 - **Purpose**: Modern unified interface for graph editing with extensible Python-based analysis
 
@@ -98,7 +98,7 @@ main.js (Electron main process)
 - ✅ **Error Handling**: Comprehensive debugging and graceful fallbacks
 - ✅ **Template System**: Plugin development template remains clean and user-friendly
 
-**Status**: 🎉 **v2.2.0 COMPLETE** - Major performance breakthrough for large graph visualization. Intelligent physics management automatically disables resource-intensive physics simulation for graphs over 50 nodes, eliminating lag and unresponsive behavior. Users can manually control physics or use "stabilize & disable" for optimal performance. Comprehensive graph navigation now works smoothly regardless of graph size.
+**Status**: 🎉 **v2.2.1 COMPLETE** - Critical navigation fix deployed. Resolved zoom/pan interaction issue caused by physics optimization implementation. Performance optimizations for large graphs fully functional while maintaining smooth navigation experience. Physics auto-disable and manual controls working correctly without interfering with vis-network's default interaction behavior.
 
 ## v2.1.0 New Features ✅
 - ✅ **Visualization Preferences Panel**: Collapsible UI in graph editor header
@@ -138,6 +138,13 @@ main.js (Electron main process)
 - ✅ **Stabilize & Disable Button**: One-click optimization for large graphs
 - ✅ **Intelligent Resource Management**: CPU usage scales gracefully with graph size
 - ✅ **Smooth Navigation**: Zoom/pan remains responsive regardless of graph size
+
+## v2.2.1 Navigation Interaction Fix ✅
+- ✅ **Critical Bug Fix**: Resolved zoom/pan not working after physics optimization
+- ✅ **Root Cause**: Physics configuration was overriding vis-network interaction behavior
+- ✅ **Solution**: Maintain complete physics structure, only toggle enabled flags
+- ✅ **Preserved Functionality**: All performance optimizations remain fully functional
+- ✅ **Interaction Restored**: Default vis-network zoom/pan behavior fully operational
 
 ## v2.2 Series Complete ✅
 The visualization enhancement vision is now fully realized:
