@@ -649,6 +649,28 @@
                     </div>
                     
                     <div class="pref-section">
+                        <h4>Performance Settings</h4>
+                        <div class="pref-control">
+                            <label class="pref-label">Physics Engine:</label>
+                            <input type="checkbox" id="physics-enabled" class="pref-checkbox" checked>
+                            <span style="font-size: 12px; color: #777;">Enable automatic layout (disable for large graphs)</span>
+                        </div>
+                        <div class="pref-control">
+                            <label class="pref-label">Auto-disable:</label>
+                            <input type="checkbox" id="physics-auto-disable" class="pref-checkbox" checked>
+                            <span style="font-size: 12px; color: #777;">Disable physics for graphs >50 nodes</span>
+                        </div>
+                        <div class="pref-control">
+                            <span id="performance-status" style="font-size: 12px; color: #27ae60; font-weight: 500;">Performance: Good</span>
+                        </div>
+                        <div class="pref-control">
+                            <button id="stabilize-disable-btn" class="pref-reset-btn" style="background: #3498db; font-size: 11px; padding: 4px 8px;">
+                                ⚡ Stabilize & Disable Physics
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="pref-section">
                         <h4>Layout Settings</h4>
                         <div class="pref-control">
                             <label class="pref-label">Node Spacing:</label>
@@ -821,7 +843,9 @@
                 arrowScaleByValue: false,
                 arrowSkinnyMode: false,
                 springLength: 95,
-                physicsPreset: 'normal'
+                physicsPreset: 'normal',
+                physicsEnabled: true,
+                physicsAutoDisable: true
             };
 
             // Load preferences from localStorage or use defaults
@@ -837,6 +861,11 @@
 
             // Apply preferences to network
             function applyPreferences(prefs) {
+                // Check if physics should be auto-disabled for performance
+                const nodeCount = network.body.data.nodes ? network.body.data.nodes.length : 0;
+                const shouldDisablePhysics = prefs.physicsAutoDisable && nodeCount > 50;
+                const physicsActive = prefs.physicsEnabled && !shouldDisablePhysics;
+
                 const newOptions = {
                     nodes: {
                         ...options.nodes,
@@ -853,8 +882,13 @@
                         width: prefs.arrowScale * (prefs.arrowSkinnyMode ? 1 : 2)  // Skinny mode uses 1, normal uses 2
                     },
                     physics: {
-                        ...options.physics,
-                        barnesHut: {
+                        enabled: physicsActive,
+                        stabilization: physicsActive ? { 
+                            enabled: true,
+                            iterations: 500,
+                            updateInterval: 25
+                        } : false,
+                        barnesHut: physicsActive ? {
                             ...options.physics.barnesHut,
                             springLength: prefs.springLength,
                             ...(prefs.physicsPreset === 'tight' && {
@@ -867,11 +901,14 @@
                                 centralGravity: 0.1,
                                 springLength: prefs.springLength * 1.3
                             })
-                        }
+                        } : {}
                     }
                 };
 
                 network.setOptions(newOptions);
+
+                // Update performance status indicator
+                updatePerformanceStatus(nodeCount, shouldDisablePhysics, physicsActive);
 
                 // Handle node sizing
                 if (prefs.nodeSizeAuto) {
@@ -966,6 +1003,26 @@
                 }
             }
 
+            // Update performance status indicator
+            function updatePerformanceStatus(nodeCount, shouldDisablePhysics, physicsActive) {
+                const statusElement = document.getElementById('performance-status');
+                if (!statusElement) return;
+
+                if (shouldDisablePhysics) {
+                    statusElement.textContent = `Performance: Physics auto-disabled (${nodeCount} nodes)`;
+                    statusElement.style.color = '#f39c12'; // Orange
+                } else if (!physicsActive) {
+                    statusElement.textContent = `Performance: Physics manually disabled`;
+                    statusElement.style.color = '#e74c3c'; // Red
+                } else if (nodeCount > 30) {
+                    statusElement.textContent = `Performance: Large graph (${nodeCount} nodes)`;
+                    statusElement.style.color = '#f39c12'; // Orange
+                } else {
+                    statusElement.textContent = `Performance: Good (${nodeCount} nodes)`;
+                    statusElement.style.color = '#27ae60'; // Green
+                }
+            }
+
             // Initialize preferences panel
             const prefsToggle = document.getElementById('prefs-toggle');
             const prefsPanel = document.getElementById('viz-preferences');
@@ -993,6 +1050,9 @@
                 document.getElementById('arrow-scale-value').textContent = prefs.arrowScale + 'x';
                 document.getElementById('arrow-scale-by-value').checked = prefs.arrowScaleByValue;
                 document.getElementById('arrow-skinny-mode').checked = prefs.arrowSkinnyMode;
+                
+                document.getElementById('physics-enabled').checked = prefs.physicsEnabled;
+                document.getElementById('physics-auto-disable').checked = prefs.physicsAutoDisable;
                 
                 document.getElementById('physics-preset').value = prefs.physicsPreset;
                 document.getElementById('spring-length-slider').value = prefs.springLength;
@@ -1032,6 +1092,18 @@
                 applyPreferences(currentPrefs);
             });
 
+            document.getElementById('physics-enabled').addEventListener('change', (e) => {
+                currentPrefs.physicsEnabled = e.target.checked;
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
+            document.getElementById('physics-auto-disable').addEventListener('change', (e) => {
+                currentPrefs.physicsAutoDisable = e.target.checked;
+                savePreferences(currentPrefs);
+                applyPreferences(currentPrefs);
+            });
+
             document.getElementById('physics-preset').addEventListener('change', (e) => {
                 currentPrefs.physicsPreset = e.target.value;
                 savePreferences(currentPrefs);
@@ -1052,6 +1124,23 @@
                 updateUI(currentPrefs);
                 savePreferences(currentPrefs);
                 applyPreferences(currentPrefs);
+            });
+
+            // Stabilize and disable physics button
+            document.getElementById('stabilize-disable-btn').addEventListener('click', () => {
+                // Let physics run for a short time to position nodes, then disable
+                currentPrefs.physicsEnabled = true;
+                applyPreferences(currentPrefs);
+                
+                // Wait for stabilization, then disable physics
+                setTimeout(() => {
+                    network.once('stabilizationIterationsDone', () => {
+                        currentPrefs.physicsEnabled = false;
+                        updateUI(currentPrefs);
+                        savePreferences(currentPrefs);
+                        applyPreferences(currentPrefs);
+                    });
+                }, 100);
             });
 
             // Re-apply preferences when graph data changes
