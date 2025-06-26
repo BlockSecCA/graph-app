@@ -1,18 +1,20 @@
-# Causal Graph Tool v2.0
+# Causal Graph Tool v2.2.1
 
-A professional Electron-based application for creating, editing, and analyzing causal graphs with an extensible plugin system.
+A professional Electron-based application for creating, editing, and analyzing causal graphs with an extensible plugin system and advanced visualization controls.
 
 ## ✨ Features
 
-### 🎨 **Unified Graph Editor**
+### 🎨 **Advanced Graph Editor**
 - **Intuitive Interface**: Single unified view combining editing and analysis
 - **Context Menu Operations**: Right-click to add nodes, edit properties, or delete elements
-- **Real-time Physics**: Interactive node positioning with collision detection
+- **Visualization Preferences**: Comprehensive controls for node sizing, arrow scaling, and layout
+- **Performance Optimized**: Smooth navigation for graphs of any size with intelligent physics management
 - **Professional Styling**: Clean, modern interface with responsive design
 
 ### 🔗 **Smart Edge Management**
 - **Visual Connections**: Directed edges with positive (+) and negative (-) influence types
 - **Weighted Relationships**: Configurable edge weights for influence strength
+- **Advanced Arrow Controls**: Adjustable arrow scaling with value-based sizing and skinny arrow options
 - **Context Menus**: Right-click nodes and edges for quick editing and deletion
 
 ### 📊 **Advanced Analysis**
@@ -20,6 +22,14 @@ A professional Electron-based application for creating, editing, and analyzing c
 - **Real-time Updates**: Analysis automatically updates as you modify the graph
 - **Rich Results**: Detailed influence scores, causal paths, and execution metadata
 - **NetworkX Integration**: Sophisticated graph algorithms using industry-standard library
+
+### 🎛️ **Visualization Preferences**
+- **Node Controls**: Manual sizing (8-32px) with auto-size based on connection count
+- **Arrow Scaling**: Adjustable arrow sizes (0.5-2.5x) with value-based proportional scaling
+- **Physics Management**: Tight/Normal/Loose layout presets with custom spring length
+- **Performance Settings**: Auto-disable physics for large graphs (>50 nodes) with manual override
+- **Skinny Arrows**: Optional thin arrow style for cleaner dense graph visualization
+- **Reset Controls**: One-click return to default settings with "Stabilize & Disable" optimization
 
 ### 🔌 **Plugin System**
 - **User-Serviceable**: Add custom analysis plugins in the user data directory
@@ -47,8 +57,9 @@ npm start
 1. **Create Nodes**: Right-click on empty space → "Add Node"
 2. **Connect Nodes**: Right-click on empty space → "Add Edge" → Select source and target
 3. **Edit Elements**: Right-click on nodes/edges for edit/delete options
-4. **Analyze Graph**: Select plugin from dropdown and click "Run Analysis"
-5. **Save/Load**: Use toolbar buttons for graph persistence
+4. **Customize Visualization**: Click "⚙️ Visualization" button to adjust node sizes, arrows, and performance
+5. **Analyze Graph**: Select plugin from dropdown and click "Run Analysis"
+6. **Save/Load**: Use toolbar buttons for graph persistence
 
 ## 📁 File Operations
 
@@ -145,13 +156,27 @@ npm run build:linux
 npm run build:all
 ```
 
-## 🆕 What's New in v2.0
+## 🆕 What's New in v2.2
 
+### v2.2.1 - Navigation & Performance
+- **⚡ Large Graph Performance**: Automatic physics optimization for graphs >50 nodes
+- **🎛️ Visualization Preferences**: Comprehensive controls for node sizing, arrow scaling, and layout
+- **📊 Performance Monitoring**: Real-time feedback on graph performance with color-coded status
+- **🔧 Manual Controls**: Physics engine toggle with "Stabilize & Disable" optimization
+- **🎯 Navigation Restored**: Smooth zoom and pan for all graph sizes
+
+### v2.1 - Visualization Controls  
+- **📐 Node Size Control**: Manual sizing (8-32px) with auto-size based on connections
+- **🏹 Arrow Scaling**: Adjustable arrows (0.5-2.5x) with value-based proportional scaling
+- **⚙️ Physics Presets**: Tight/Normal/Loose layout options with custom spring length
+- **💾 Persistent Preferences**: Settings saved across app sessions
+- **🔄 Reset to Defaults**: One-click restoration of original settings
+
+### v2.0 - Foundation
 - **🎯 Unified Interface**: Complete redesign eliminating iframe isolation
 - **🔌 Plugin System**: Extensible analysis framework with Python integration
 - **🎨 Context Menus**: Professional editing interface with right-click operations
 - **📊 Enhanced Analysis**: Real-time analysis with rich result visualization
-- **⚡ Improved Performance**: Better physics simulation and responsive design
 - **🛠 User-Serviceable**: Plugin development and customization capabilities
 
 ## 📚 Documentation
@@ -181,4 +206,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Causal Graph Tool v2.0** - Professional graph analysis made simple.
+**Causal Graph Tool v2.2.1** - Professional graph analysis with advanced visualization and performance optimization.
