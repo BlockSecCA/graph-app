@@ -1,5 +1,17 @@
 # Causal Graph Tool v2.2.1
 
+[![Status](https://img.shields.io/badge/Status-Tool-blue?style=for-the-badge)](https://github.com/BlockSecCA/graph-app)
+[![Electron](https://img.shields.io/badge/Electron-2B2E3A?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5)
+[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Pyodide](https://img.shields.io/badge/Pyodide-FFD43B?style=for-the-badge&logo=python&logoColor=white)](https://pyodide.org/)
+[![NetworkX](https://img.shields.io/badge/NetworkX-000000?style=for-the-badge&logo=python&logoColor=white)](https://networkx.org/)
+[![Vis-network](https://img.shields.io/badge/Vis--network-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](https://visjs.github.io/vis-network/docs/network/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
 A professional Electron-based application for creating, editing, and analyzing causal graphs with an extensible plugin system and advanced visualization controls.
 
 ## ✨ Features
