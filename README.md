@@ -219,3 +219,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Causal Graph Tool v2.2.1** - Professional graph analysis with advanced visualization and performance optimization.
+## Author
+
+Carlos - BlockSecCA
+
