@@ -1,4 +1,6 @@
-# CLAUDE.md - Project Context & Progress
+# graph-app
+
+> PUBLIC REPO — No secrets, no PII, no internal references. Assume strangers read everything.
 
 ## Project Overview
 **graph-app** - Professional Electron-based causal graph editor and analysis tool
