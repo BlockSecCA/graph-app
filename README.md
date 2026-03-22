@@ -1,5 +1,10 @@
 # Causal Graph Tool v2.2.1
 
+[![Version](https://img.shields.io/badge/version-2.2.1-blue)](https://github.com/BlockSecCA/graph-app/releases)
+[![License](https://img.shields.io/github/license/BlockSecCA/graph-app)](LICENSE)
+[![Electron](https://img.shields.io/badge/electron-v25-47848F?logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![Tests](https://img.shields.io/badge/tests-43%20passing-brightgreen)](https://github.com/BlockSecCA/graph-app)
+
 [![Status](https://img.shields.io/badge/Status-Tool-blue?style=for-the-badge)](https://github.com/BlockSecCA/graph-app)
 [![Electron](https://img.shields.io/badge/Electron-2B2E3A?style=for-the-badge&logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5)
